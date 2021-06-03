@@ -29,11 +29,7 @@ public class Main {
 
 
     public static void main(final String[] args) throws URISyntaxException {
-//        var files =
-//                Arrays.stream(Objects.requireNonNull(Path.of(Objects.requireNonNull(Thread.currentThread().getContextClassLoader().getResource(example.name())).toURI()).toFile().listFiles()))
-//                        .map(f -> String.join("/", example.name(), f.getName()))
-//                        .collect(Collectors.toList());
-        BProgram bprog = new ContextBProgram("FourInARow.js");
+        BProgram bprog = new ContextBProgram("FourInARow.js", "dal.js", "bl.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel));
 

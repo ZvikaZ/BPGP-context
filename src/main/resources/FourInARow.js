@@ -103,13 +103,10 @@ const col6ES =  bp.EventSet("Any Put 6", function(evt) {
 // req1: Represents alternating turns as mentioned in the game rules 
 bp.registerBThread("EnforceTurns", function() {
 	while (true) {
-		//TODO boardUpdatedES should be first...
-		bp.sync({ waitFor:yellowColES, block: [yellowCoinEs, redColES, redCoinEs, boardUpdatedES]});
-		bp.sync({ waitFor:yellowCoinEs, block: [redColES, redCoinEs, yellowColES, boardUpdatedES]});
-		bp.sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, yellowCoinEs]});
-		bp.sync({ waitFor:redColES, block: [yellowColES, yellowCoinEs, redCoinEs, boardUpdatedES]});
-		bp.sync({ waitFor:redCoinEs, block: [redColES, yellowCoinEs, yellowColES, boardUpdatedES]});
-		bp.sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, redCoinEs]});
+		bp.sync({ waitFor:yellowColES, block: [yellowCoinEs, redColES, redCoinEs]});
+		bp.sync({ waitFor:yellowCoinEs, block: [redColES, redCoinEs, yellowColES]});
+		bp.sync({ waitFor:redColES, block: [yellowColES, yellowCoinEs, redCoinEs]});
+		bp.sync({ waitFor:redCoinEs, block: [redColES, yellowCoinEs, yellowColES]});
 	}
 });
 
@@ -292,41 +289,41 @@ bp.registerBThread('random red player', function() {
 
 bp.registerBThread("boardUpdater", function() {
 	var board = [
-		['*', '*','*', '*','*', '*','*'],
+		['*', '*', '*', '*', '*', '*', '*'],
 
-		['*', '*','*', '*','*', '*','*'],
+		['*', '*', '*', '*', '*', '*', '*'],
 
-		['*', '*','*', '*','*', '*','*'],
+		['*', '*', '*', '*', '*', '*', '*'],
 
-		['*', '*','*', '*','*', '*','*'],
+		['*', '*', '*', '*', '*', '*', '*'],
 
-		['*', '*','*', '*','*', '*','*'],
+		['*', '*', '*', '*', '*', '*', '*'],
 
-		['*', '*','*', '*','*', '*','*'],
+		['*', '*', '*', '*', '*', '*', '*'],
 	];
 
-	for(var i=0; i < 42; i++) {
-		var e = bp.sync({ waitFor:[ redCoinEs, yellowCoinEs ]});
-		if(e.data.color.equals("Red")) 
-		{
+	for (var i = 0; i < 42; i++) {
+		var e = bp.sync({waitFor: [redCoinEs, yellowCoinEs]});
+		if (e.data.color.equals("Red")) {
 			let row = e.data.row;
 			let col = e.data.col;
 			board[row][col] = 'R';
-		}
-		else 
-		{
+		} else {
 			let row = e.data.row;
 			let col = e.data.col;
 			board[row][col] = 'Y'
 		}
 
 		bp.log.info("--------------------")
-		for(var i = 0; i < 6; i++) {
+		for (var i = 0; i < 6; i++) {
 			bp.log.info(board[i][0] + "  " + board[i][1] + "  " + board[i][2] + "  " + board[i][3] + "  " + board[i][4] + "  " + board[i][5] + "  " + board[i][6]);
 		}
 		bp.log.info(e.data)
 		bp.log.info("--------------------")
+	}
+})
 
+/*
 		//TODO: do we need to pass 'board'?
 		// bp.sync({request: bp.Event("BoardUpdated", {board: board, ev: e})})
 		bp.sync({request: bp.Event("BoardUpdated", {ev: e})})
@@ -337,7 +334,6 @@ bp.registerBThread("boardUpdater", function() {
 var boardUpdatedES = bp.EventSet("BoardUpdated ES", function(e) {
 	return e.name == "BoardUpdated";
 });
-
 
 const ST_TOO_HIGH = 0
 const ST_READY = 1
@@ -458,11 +454,12 @@ function registerFivesHandler(series) {
 for (let i = 0; i < allFives.length; i++) {
 	registerFivesHandler(allFives[i])
 }
+*/
 
+// strategy: catch the 3 center cells of empty five, and then one of the edges
 // strategy: catch the fourth cell out of four
-
 // strategy: catch 3 out of two 4-s, such as the opponent would have to block the first one, and we will complete the second above his coin
-
 
 // strategy: don't let the opponent to catch the fourth cell out of four
 // strategy: don't let the opponent to catch the the 3 center cells of empty five
+
