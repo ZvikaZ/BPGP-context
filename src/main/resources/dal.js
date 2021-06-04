@@ -1,5 +1,5 @@
 //TODO
-let line = [{row: 5, col: 1}, {row: 5, col: 2}, {row: 5, col: 3}, {row: 5, col: 4}, {row: 5, col: 5}]
+// let line = [{row: 5, col: 1, edge: true}, {row: 5, col: 2}, {row: 5, col: 3}, {row: 5, col: 4}, {row: 5, col: 5, edge: true}]
 
 
 function buildCell(row, col) {
@@ -39,18 +39,18 @@ ctx.registerEffect('BoardUpdated', function (data) {
     } catch (e) {
         all_ready = false
     }
-    if (all_ready) {
-        ctx.insertEntity(buildLine(line), "ALL_READY")
-        bp.log.info("ZZ inserted: ")
-        bp.log.info(buildLine(line))
-    } else {
-        try {
+    try {
+        if (all_ready) {
+            ctx.insertEntity(buildLine(line), "ALL_READY", {center: line.filter((cell) => !cell.edge )})
+            bp.log.info("ZZ inserted: ")
+            bp.log.info(buildLine(line))
+        } else {
             ctx.removeEntity(buildLine(line))
             bp.log.info("ZZ removed: ")
             bp.log.info(buildLine(line))
-        } catch (e) {
-            // nothing to do
         }
+    } catch (e) {
+        // nothing to do
     }
 })
 
