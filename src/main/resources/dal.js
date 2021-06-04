@@ -1,26 +1,62 @@
-// Add entities
+//TODO
+let line = [{row: 5, col: 1}, {row: 5, col: 2}, {row: 5, col: 3}, {row: 5, col: 4}, {row: 5, col: 5}]
+
+
+function buildCell(row, col) {
+    return 'cell: ' + row + ", " + col
+}
+
+function buildLine(line) {
+    return 'line: ' + line.join()
+}
+
+
 ctx.populateContext(() => {
-    ctx.insertEntity('r1', 'room', {subtype: 'kitchen'})
-    ctx.insertEntity('r2', 'room', {subtype: 'bedroom'})
-    ctx.insertEntity('r3', 'room', {subtype: 'bathroom'})
+    for(var i = 0; i < 7; i++ )
+        ctx.insertEntity(buildCell(5, i), 'READY')
 })
 
-// Specifies the contexts/layers preconditions
-ctx.registerQuery('Night',
-    entity => entity.id == 'night')
-ctx.registerQuery('Room.WithTaps',
-    entity => entity.type == 'room' &&
-        ['kitchen', 'bathroom'].includes(entity.subtype))
+ctx.registerEffect('BoardUpdated', function (data) {
+    ev_data = data.ev.data
 
-// Specify the effect of certain events on the context
-ctx.registerEffect('night begins', function (data) {
-    ctx.insertEntity('night', 'system')
+    // update cells
+    ctx.removeEntity(buildCell(ev_data.row, ev_data.col))
+    ctx.insertEntity(buildCell(ev_data.row, ev_data.col), ev_data.color)
+    if (ev_data.row > 0)
+        ctx.insertEntity(buildCell(ev_data.row - 1, ev_data.col), 'READY')
+
+    // update lines
+    let all_ready = true
+    try {
+        for(var i = 0; i < line.length && all_ready; i++ ) {
+            let cell = line[i]
+            if (ctx.getEntityById(buildCell(cell.row, cell.col)).type != "READY") {
+                all_ready = false
+                bp.log.info("not ready")
+                bp.log.info(cell)
+            }
+        }
+    } catch (e) {
+        all_ready = false
+    }
+    if (all_ready) {
+        ctx.insertEntity(buildLine(line), "ALL_READY")
+        bp.log.info("ZZ inserted: ")
+        bp.log.info(buildLine(line))
+    } else {
+        try {
+            ctx.removeEntity(buildLine(line))
+            bp.log.info("ZZ removed: ")
+            bp.log.info(buildLine(line))
+        } catch (e) {
+            // nothing to do
+        }
+    }
 })
-ctx.registerEffect('night ends', function (data) {
-    ctx.removeEntity('night')
-})
+
+ctx.registerQuery('Five.AllReady',
+    entity => entity.id == buildLine(line))
 
 
-ctx.registerQuery('Room.Kitchen',
-    entity => entity.type == 'room' &&
-        'kitchen' == entity.subtype)
+
+

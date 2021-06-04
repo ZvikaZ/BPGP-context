@@ -103,10 +103,13 @@ const col6ES =  bp.EventSet("Any Put 6", function(evt) {
 // req1: Represents alternating turns as mentioned in the game rules 
 bp.registerBThread("EnforceTurns", function() {
 	while (true) {
-		bp.sync({ waitFor:yellowColES, block: [yellowCoinEs, redColES, redCoinEs]});
-		bp.sync({ waitFor:yellowCoinEs, block: [redColES, redCoinEs, yellowColES]});
-		bp.sync({ waitFor:redColES, block: [yellowColES, yellowCoinEs, redCoinEs]});
-		bp.sync({ waitFor:redCoinEs, block: [redColES, yellowCoinEs, yellowColES]});
+		//TODO boardUpdatedES should be first?
+		bp.sync({ waitFor:yellowColES, block: [yellowCoinEs, redColES, redCoinEs, boardUpdatedES]});
+		bp.sync({ waitFor:yellowCoinEs, block: [redColES, redCoinEs, yellowColES, boardUpdatedES]});
+		bp.sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, yellowCoinEs]});
+		bp.sync({ waitFor:redColES, block: [yellowColES, yellowCoinEs, redCoinEs, boardUpdatedES]});
+		bp.sync({ waitFor:redCoinEs, block: [redColES, yellowCoinEs, yellowColES, boardUpdatedES]});
+		bp.sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, redCoinEs]});
 	}
 });
 
@@ -320,10 +323,7 @@ bp.registerBThread("boardUpdater", function() {
 		}
 		bp.log.info(e.data)
 		bp.log.info("--------------------")
-	}
-})
 
-/*
 		//TODO: do we need to pass 'board'?
 		// bp.sync({request: bp.Event("BoardUpdated", {board: board, ev: e})})
 		bp.sync({request: bp.Event("BoardUpdated", {ev: e})})
@@ -335,6 +335,7 @@ var boardUpdatedES = bp.EventSet("BoardUpdated ES", function(e) {
 	return e.name == "BoardUpdated";
 });
 
+/*
 const ST_TOO_HIGH = 0
 const ST_READY = 1
 const ST_MY = 2
@@ -462,4 +463,5 @@ for (let i = 0; i < allFives.length; i++) {
 
 // strategy: don't let the opponent to catch the fourth cell out of four
 // strategy: don't let the opponent to catch the the 3 center cells of empty five
+
 
