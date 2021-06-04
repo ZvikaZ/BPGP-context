@@ -70,11 +70,9 @@ ctx.registerEffect('BoardUpdated', function (data) {
     })
 })
 
-let i = 0
 allFives.forEach(function (line) {
-    ctx.registerQuery('Five.AllReady.' + i,
+    ctx.registerQuery('Five.AllReady.' + buildLine(line),
         entity => entity.id == buildLine(line))
-    i++
 })
 
 
