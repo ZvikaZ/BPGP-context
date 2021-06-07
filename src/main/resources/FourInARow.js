@@ -29,103 +29,80 @@ StaticEvents = {
 }; 
 
 // Game ends when : 1. Either of the players has won ( Red or Yellow ) 2. It's a draw
-bp.registerBThread("EndOfGame", function() {
-	let e = bp.sync({ waitFor:[ StaticEvents.RedWin, StaticEvents.YellowWin, StaticEvents.Draw ] });
-	bp.log.info("End of game: " + e)
-	bp.sync({ block:[ moves ] });
+bthread("EndOfGame", function() {
+	let e = sync({ waitFor:[ StaticEvents.RedWin, StaticEvents.YellowWin, StaticEvents.Draw ] });
+	bp.log.info("End of game: {0}", e)
+	sync({ block:[ moves ] });
 });
 
-bp.registerBThread("DetectDraw", function() {
-	for (var i=0; i< 42; i++) { bp.sync({ waitFor:[ yellowCoinEs, redCoinEs ] }); }
-	bp.sync({ request:[ StaticEvents.Draw ] }, 90);
+bthread("DetectDraw", function() {
+	for (var i=0; i< 42; i++) { sync({ waitFor:[ yellowCoinEs, redCoinEs ] }); }
+	sync({ request:[ StaticEvents.Draw ] }, 90);
 });
 
 
 var moves = bp.EventSet("Move events", function(e) {
-	return e.name.startsWith("Put") || e.name.startsWith("Coin");
+	return e.name.equals("Put") || e.name.equals("Coin");
 });
 
 
  
 // put in column event 
 function putInCol(col, color) {
-	return bp.Event( "Put " + color +" (" + col + ")", {color:color, col:col});
+	return bp.Event( "Put", {color:color, col:col});
 }
 
 // put coin in specific cell event 
-function putCoin(row, col, color) {
-	return bp.Event("Coin " + color + "(" + row + "," + col + ")", {color:color, row:row, col:col});
-}
+
 
 const redColES = bp.EventSet( "Red Col moves", function(evt){
-    return evt.name.startsWith("Put Red");
+    return evt.name.equals("Put") && evt.data.color.equals("Red");
 });
 
 const yellowColES = bp.EventSet( "Yellow Col moves", function(evt){
-    return evt.name.startsWith("Put Yellow");
+	return evt.name.equals("Put") && evt.data.color.equals("Yello");
 });
 
 const redCoinEs = bp.EventSet( "Red Coin moves", function(evt){
-    return evt.name.startsWith("Coin Red");
+	return evt.name.equals("Coin") && evt.data.color.equals("Red");
 });
 
 const yellowCoinEs = bp.EventSet( "Yellow moves", function(evt){
-    return evt.name.startsWith("Coin Yellow");
+	return evt.name.equals("Coin") && evt.data.color.equals("Yello");
 });
 
 const AnyPut = bp.EventSet("Any Put", function(evt) {
-	return evt.name.startsWith("Put");
+	return evt.name.equals("Put");
 });
 
-const col0ES =  bp.EventSet("Any Put 0", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 0.0;
-});
-const col1ES =  bp.EventSet("Any Put 1", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 1.0;
-});
-const col2ES =  bp.EventSet("Any Put 2", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 2.0;
-});
-const col3ES =  bp.EventSet("Any Put 3", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 3.0;
-});
-const col4ES =  bp.EventSet("Any Put 4", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 4.0;
-});
-const col5ES =  bp.EventSet("Any Put 5", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 5.0;
-});
-const col6ES =  bp.EventSet("Any Put 6", function(evt) {
-	return evt.name.startsWith("Put") && evt.data.col == 6.0;
-});
 
 
 // req1: Represents alternating turns as mentioned in the game rules 
-bp.registerBThread("EnforceTurns", function() {
+bthread("EnforceTurns", function() {
 	while (true) {
 		//TODO boardUpdatedES should be first?
-		bp.sync({ waitFor:yellowColES, block: [yellowCoinEs, redColES, redCoinEs, boardUpdatedES]});
-		bp.sync({ waitFor:yellowCoinEs, block: [redColES, redCoinEs, yellowColES, boardUpdatedES]});
-		bp.sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, yellowCoinEs]});
-		bp.sync({ waitFor:redColES, block: [yellowColES, yellowCoinEs, redCoinEs, boardUpdatedES]});
-		bp.sync({ waitFor:redCoinEs, block: [redColES, yellowCoinEs, yellowColES, boardUpdatedES]});
-		bp.sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, redCoinEs]});
+		sync({ waitFor:yellowColES, block: [yellowCoinEs, redColES, redCoinEs, boardUpdatedES]});
+		sync({ waitFor:yellowCoinEs, block: [redColES, redCoinEs, yellowColES, boardUpdatedES]});
+		sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, yellowCoinEs]});
+		sync({ waitFor:redColES, block: [yellowColES, yellowCoinEs, redCoinEs, boardUpdatedES]});
+		sync({ waitFor:redCoinEs, block: [redColES, yellowCoinEs, yellowColES, boardUpdatedES]});
+		sync({ waitFor:boardUpdatedES, block: [redColES, redCoinEs, yellowColES, redCoinEs]});
 	}
 });
 
 //req2: physics - after put in a col, the coin falls to the first available place
-bp.registerBThread("put in col" , function() { 
+bthread("put in col" , function() { 
 	let columns = [ 5 , 5 , 5 , 5 , 5 , 5 , 5 ];
 	while(true) {
-		let e = bp.sync({waitFor: AnyPut });
-		let ev = bp.sync({request: putCoin( columns[e.data.col]-- , e.data.col, e.data.color)});
+		let e = sync({waitFor: AnyPut });
+		let ev = sync({request: putCoin( columns[e.data.col]-- , e.data.col, e.data.color)});
 		// bp.dump("put in col", "ev", typeof(ev), ev)
 	}
 });
 
 //req3: one cannot put a coin in a full column
 function blockPutInFullColumn(col){
-	bp.registerBThread("one cannot put a coin in a full column " + col , function() { 
+	bthread("one cannot put a coin in a full column " + col , function() { 
         let es = col == 0 ? col0ES :
         col == 1 ? col1ES : 
         col == 2 ? col2ES : 
@@ -135,10 +112,10 @@ function blockPutInFullColumn(col){
         col == 6 ? col6ES : null ;
 
 		for(let i = 0; i < 6; i++) {
-            bp.sync({ waitFor: es });
+            sync({ waitFor: es });
         }
         while(true) {
-		    bp.sync({ block: es });
+		    sync({ block: es });
         }
     })
 }
@@ -195,7 +172,7 @@ for ( var i=0; i<len; i++ ) {
 			"(" +  currentFour[1].row + "," + currentFour[1].col + ")" + " ; " +
 			"(" +  currentFour[2].row + "," + currentFour[2].col + ")" + " ; " +
 			"(" +  currentFour[3].row + "," + currentFour[3].col + ")" + "]"
-        bp.registerBThread(btName , function() {
+        bthread(btName , function() {
             let fourEventArr = [];
             for(var i = 0; i < 4; i++) 
             {
@@ -207,7 +184,7 @@ for ( var i=0; i<len; i++ ) {
 			for ( var i=0; i<4; i++ ) {
 				// bp.log.info("Detect YellowWin waiting " + j + " #" + i)
 				// bp.log.info(fourEventArr)
-				let e = bp.sync({waitFor:fourEventArr});
+				let e = sync({waitFor:fourEventArr});
 				if (true) {
 					// bp.dump(btName, "e", typeof(e), e)
 					// bp.dump(btName, "j", typeof(j), j)
@@ -218,7 +195,7 @@ for ( var i=0; i<len; i++ ) {
 				}
 			}
 
-            bp.sync({request:StaticEvents.YellowWin, block: moves }, 100);
+            sync({request:StaticEvents.YellowWin, block: moves }, 100);
         });
     })(i);
 };
@@ -227,7 +204,7 @@ for ( var i=0; i<len; i++ ) {
 for ( var i=0; i<len; i++ ) {
     (function(j){
         let currentFour = allFours[j];
-        bp.registerBThread("Detect red win" + "[" + "(" +  currentFour[0].row + "," + currentFour[0].col + ")" + " ; " + 
+        bthread("Detect red win" + "[" + "(" +  currentFour[0].row + "," + currentFour[0].col + ")" + " ; " + 
         "(" +  currentFour[1].row + "," + currentFour[1].col + ")" + " ; " + 
         "(" +  currentFour[2].row + "," + currentFour[2].col + ")" + " ; " + 
         "(" +  currentFour[3].row + "," + currentFour[3].col + ")" + "]" , function() { 
@@ -238,10 +215,10 @@ for ( var i=0; i<len; i++ ) {
             }
     
             for ( var i=0; i<4; i++ ) {
-                  bp.sync({waitFor:fourEventArr});
+                  sync({waitFor:fourEventArr});
             }
             
-            bp.sync({request:StaticEvents.RedWin, block: moves }, 100);
+            sync({request:StaticEvents.RedWin, block: moves }, 100);
         });
     })(i);
 };
@@ -252,45 +229,45 @@ for ( var i=0; i<len; i++ ) {
 //From here: strategies
 
 /*
-bp.registerBThread("CenterCol", function() {
+bthread("CenterCol", function() {
 	while (true) {
-		bp.sync({ request:[ putInCol(3, "Yellow"), 
+		sync({ request:[ putInCol(3, "Yellow"), 
 							putInCol(3, "Red") ] });
 	}
 });
 
-bp.registerBThread("semiCenterCol", function() {
+bthread("semiCenterCol", function() {
 	while (true) {
-		bp.sync({ request:[  putInCol(1, "Yellow") , putInCol(2, "Yellow") , putInCol(4, "Yellow") , putInCol(5, "Yellow"), 
+		sync({ request:[  putInCol(1, "Yellow") , putInCol(2, "Yellow") , putInCol(4, "Yellow") , putInCol(5, "Yellow"), 
 							 putInCol(1, "Red") , putInCol(2, "Red") , putInCol(4, "Red") , putInCol(5, "Red") ] });
 	}
 });
 
-bp.registerBThread("sideCol", function() {
+bthread("sideCol", function() {
 	while (true) {
-		bp.sync({ request:[ putInCol(0, "Yellow"),putInCol(6, "Yellow"),
+		sync({ request:[ putInCol(0, "Yellow"),putInCol(6, "Yellow"),
 							putInCol(0, "Red"),putInCol(6, "Red")     ] });
 	}
 });
 */
 
-bp.registerBThread('random yellow player', function() {
+bthread('random yellow player', function() {
 	const possiblePuts = Array.from(Array(7).keys()).map(j => putInCol(j, 'Yellow'))
 	while(true) {
-		let e = bp.sync({request: possiblePuts}, 10)
+		let e = sync({request: possiblePuts}, 10)
 		// bp.log.info("random yellow requested: " + e)
 	}
 })
 
-bp.registerBThread('random red player', function() {
+bthread('random red player', function() {
 	const possiblePuts = Array.from(Array(7).keys()).map(j => putInCol(j, 'Red'))
 	while(true) {
-		bp.sync({request: possiblePuts}, 10)
+		sync({request: possiblePuts}, 10)
 	}
 })
 
 
-bp.registerBThread("boardUpdater", function() {
+bthread("boardUpdater", function() {
 	var board = [
 		['*', '*', '*', '*', '*', '*', '*'],
 
@@ -306,7 +283,7 @@ bp.registerBThread("boardUpdater", function() {
 	];
 
 	for (var i = 0; i < 42; i++) {
-		var e = bp.sync({waitFor: [redCoinEs, yellowCoinEs]});
+		var e = sync({waitFor: [redCoinEs, yellowCoinEs]});
 		if (e.data.color.equals("Red")) {
 			let row = e.data.row;
 			let col = e.data.col;
@@ -325,8 +302,8 @@ bp.registerBThread("boardUpdater", function() {
 		bp.log.info("--------------------")
 
 		//TODO: do we need to pass 'board'?
-		// bp.sync({request: bp.Event("BoardUpdated", {board: board, ev: e})})
-		bp.sync({request: bp.Event("BoardUpdated", {ev: e})})
+		// sync({request: bp.Event("BoardUpdated", {board: board, ev: e})})
+		sync({request: bp.Event("BoardUpdated", {ev: e})})
 	}
 });
 
@@ -379,7 +356,7 @@ for(var i = 0; i < 5; i++ ) {
 function waitAndUpdateSeries(series) {
 	for (let players = 0; players < 2; players++) {
 		//TODO do we even need boardUpdatedES?
-		let e = bp.sync({waitFor: boardUpdatedES})
+		let e = sync({waitFor: boardUpdatedES})
 		ev = e.data.ev
 		// bp.log.info("seriesHandler: got boardUpdatedES: " + ev.data.row + ", " + ev.data.col + " : " + ev.data.color)
 		for (let i = 0; i < series.length; i++) {
@@ -410,7 +387,7 @@ function initSeries(series) {
 
 // strategy: catch the 3 center cells of empty five, and then one of the edges
 function registerFivesHandler(series) {
-	bp.registerBThread("fivesHandler", function () {
+	bthread("fivesHandler", function () {
 		initSeries(series);
 
 		while (true) {
@@ -440,11 +417,11 @@ function registerFivesHandler(series) {
 				bp.log.info(series)
 				if (requesting.length > 0) {
 					// bp.log.info("seriesHandler requesting (priority " + priority + "): " + requesting)
-					let e = bp.sync({request: requesting}, priority)
+					let e = sync({request: requesting}, priority)
 					// bp.log.info("seriesHandler requested " + e)
 				} else if (requesting_edge.length > 0) {
 					// bp.log.info("seriesHandler requesting_edge (priority 90): " + requesting_edge)
-					let e = bp.sync({request: requesting_edge}, 90)
+					let e = sync({request: requesting_edge}, 90)
 					// bp.log.info("seriesHandler requested_edge " + e)
 				}
 			}

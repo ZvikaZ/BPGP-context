@@ -2,6 +2,7 @@
 import il.ac.bgu.cs.bp.bpjs.context.ContextBProgram;
 import il.ac.bgu.cs.bp.bpjs.context.PrintCOBProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.execution.BProgramRunner;
+import il.ac.bgu.cs.bp.bpjs.execution.listeners.PrintBProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.model.BProgram;
 import il.ac.bgu.cs.bp.bpjs.model.eventselection.PrioritizedBSyncEventSelectionStrategy;
 
@@ -29,9 +30,9 @@ public class Main {
 
 
     public static void main(final String[] args) throws URISyntaxException {
-        BProgram bprog = new ContextBProgram("FourInARow.js", "dal.js", "bl.js");
+        BProgram bprog = new ContextBProgram("dal.js", "bl.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
-        rnr.addListener(new PrintCOBProgramRunnerListener(logLevel));
+        rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
         bprog.setEventSelectionStrategy(new PrioritizedBSyncEventSelectionStrategy());
 //      bprog.setWaitForExternalEvents(true);
