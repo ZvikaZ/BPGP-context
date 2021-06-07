@@ -28,6 +28,9 @@ function Coin(row, col, color) {
 
 //endregion
 
+//region behavior
+
+//region rules
 ctx.bthread("block put in full columns", "Column.All", function (column) {
   for (let i = 0; i < ROWS; i++)
     sync({waitFor: AnyPutInCol(column.col)})
@@ -40,7 +43,9 @@ ctx.bthread("put to coin", "Column.All", function (column) {
     sync({request: Coin(i, column.col, color)})
   }
 })
+//endregion
 
+//region manage fives' state
 ctx.bthread("mark horizontal fives as ready", "Five.All", function (five) {
   let count = 0
   while(true) {
@@ -53,3 +58,6 @@ ctx.bthread("mark horizontal fives as ready", "Five.All", function (five) {
     }
   }
 })
+//endregion
+
+//endregion
