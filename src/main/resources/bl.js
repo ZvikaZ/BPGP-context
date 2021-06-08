@@ -11,16 +11,6 @@ const AnyCoin = bp.EventSet("Any Coin", function (evt) {
     return evt.name.equals("Coin")
 })
 
-
-// const redCoinEs = bp.EventSet("Red Coin moves", function(evt){
-//     return evt.name.equals("Coin") && evt.data.color.equals("Red");
-// });
-//
-// const yellowCoinEs = bp.EventSet("Yellow moves", function(evt){
-//     return evt.name.equals("Coin") && evt.data.color.equals("Yellow");
-// });
-
-
 function AnyPutInCol(j) {
     return bp.EventSet("Any put in column " + j, function (evt) {
         return evt.name.equals("Put") && evt.data.col == j;
@@ -64,17 +54,17 @@ ctx.bthread("block put in full columns", "Column.All", function (column) {
 ctx.bthread("put to coin", "Column.All", function (column) {
     for (let i = 0; i < ROWS; i++) {
         let color = sync({waitFor: AnyPutInCol(column.col)}).data.color
-        bp.log.info("put to coin, requesting " + color)
         sync({request: Coin(i, column.col, color)})
-        bp.log.info("put to coin, got " + color)
     }
 })
 
 //TODO should it be ctx.bthread?
 bthread("EnforceTurns", function() {
     while (true) {
-        sync({ waitFor:yellowColES, block: [redColES]});
-        sync({ waitFor:redColES, block: [yellowColES]});
+        sync({ waitFor: yellowColES, block: [redColES, AnyCoin]});
+        sync({ waitFor: AnyCoin, block: [yellowColES, redColES]})
+        sync({ waitFor: redColES, block: [yellowColES, AnyCoin]});
+        sync({ waitFor: AnyCoin, block: [yellowColES, redColES]})
     }
 });
 //endregion
@@ -103,6 +93,8 @@ bthread("EnforceTurns", function() {
 bthread('random yellow player', function() {
     const possiblePuts = Array.from(Array(COLS).keys()).map(j => Event( "Put", {color:'Yellow', col:j}))
     while(true) {
+        // bp.log.info("ZZ random yellow player, requesting:")
+        // bp.log.info(possiblePuts)
         sync({request: possiblePuts}, 10)
     }
 })
@@ -119,22 +111,15 @@ bthread('random red player', function() {
 bthread("boardPrinter", function() {
     var board = [
         ['*', '*', '*', '*', '*', '*', '*'],
-
         ['*', '*', '*', '*', '*', '*', '*'],
-
         ['*', '*', '*', '*', '*', '*', '*'],
-
         ['*', '*', '*', '*', '*', '*', '*'],
-
         ['*', '*', '*', '*', '*', '*', '*'],
-
         ['*', '*', '*', '*', '*', '*', '*'],
     ];
 
     for (var i = 0; i < ROWS * COLS; i++) {
-        bp.log.info("ZZ - start")
         var e = sync({waitFor: AnyCoin});
-        bp.log.info("ZZ - got:")
         bp.log.info(e)
         if (e.data.color.equals("Red")) {
             let row = e.data.row;
@@ -147,7 +132,7 @@ bthread("boardPrinter", function() {
         }
 
         bp.log.info("--------------------")
-        for (var i = 0; i < ROWS; i++) {
+        for (var i = ROWS - 1; i >= 0; i--) {
             bp.log.info(board[i][0] + "  " + board[i][1] + "  " + board[i][2] + "  " + board[i][3] + "  " + board[i][4] + "  " + board[i][5] + "  " + board[i][6]);
         }
         bp.log.info(e.data)
