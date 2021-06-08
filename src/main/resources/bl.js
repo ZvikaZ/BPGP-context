@@ -89,19 +89,16 @@ bthread("EnforceTurns", function() {
 
 
 //region Random players
-//TODO should it be ctx.bthread?
-bthread('random yellow player', function() {
-    const possiblePuts = Array.from(Array(COLS).keys()).map(j => Event( "Put", {color:'Yellow', col:j}))
+ctx.bthread("random yellow player", "Column.All", function (column) {
     while(true) {
-        let e = sync({request: possiblePuts}, 10)
+        let e = sync({request: Event("Put", {color: 'Yellow', col: column.col})})
         bp.log.info("ZZ random yellow player, got: " + e)
     }
 })
 
-bthread('random red player', function() {
-    const possiblePuts = Array.from(Array(COLS).keys()).map(j => Event( "Put", {color:'Red', col:j}))
+ctx.bthread("random red player", "Column.All", function (column) {
     while(true) {
-        let e = sync({request: possiblePuts}, 10)
+        let e = sync({request: Event("Put", {color: 'Red', col: column.col})})
         bp.log.info("ZZ random red player, got: " + e)
     }
 })
