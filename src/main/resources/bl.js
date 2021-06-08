@@ -93,16 +93,16 @@ bthread("EnforceTurns", function() {
 bthread('random yellow player', function() {
     const possiblePuts = Array.from(Array(COLS).keys()).map(j => Event( "Put", {color:'Yellow', col:j}))
     while(true) {
-        // bp.log.info("ZZ random yellow player, requesting:")
-        // bp.log.info(possiblePuts)
-        sync({request: possiblePuts}, 10)
+        let e = sync({request: possiblePuts}, 10)
+        bp.log.info("ZZ random yellow player, got: " + e)
     }
 })
 
 bthread('random red player', function() {
     const possiblePuts = Array.from(Array(COLS).keys()).map(j => Event( "Put", {color:'Red', col:j}))
     while(true) {
-        sync({request: possiblePuts}, 10)
+        let e = sync({request: possiblePuts}, 10)
+        bp.log.info("ZZ random red player, got: " + e)
     }
 })
 //endregion
