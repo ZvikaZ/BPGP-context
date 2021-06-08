@@ -13,6 +13,7 @@ const AnyCoin = bp.EventSet("Any Coin", function (evt) {
 
 function AnyPutInCol(j) {
     return bp.EventSet("Any put in column " + j, function (evt) {
+        bp.log.info("ZZ AnyPutInCol. j=" + j + ". evt.name=" + evt.name + ". evt.data.col="+evt.data.col + ". ==?" + (evt.data.col==j) + ". result: " + (evt.name.equals("Put") && evt.data.col == j))
         return evt.name.equals("Put") && evt.data.col == j;
     })
 }
