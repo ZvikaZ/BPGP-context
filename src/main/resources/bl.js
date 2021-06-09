@@ -13,7 +13,7 @@ const AnyCoin = bp.EventSet("Any Coin", function (evt) {
 
 function AnyPutInCol(j) {
     return bp.EventSet("Any put in column " + j, function (evt) {
-        bp.log.info("ZZ AnyPutInCol. j=" + j + ". evt.name=" + evt.name + ". evt.data.col="+evt.data.col + ". ==?" + (evt.data.col==j) + ". result: " + (evt.name.equals("Put") && evt.data.col == j))
+        // bp.log.info("ZZ AnyPutInCol. j=" + j + ". evt.name=" + evt.name + ". evt.data.col="+evt.data.col + ". ==?" + (evt.data.col==j) + ". result: " + (evt.name.equals("Put") && evt.data.col == j))
         return evt.name.equals("Put") && evt.data.col == j;
     })
 }
@@ -23,15 +23,15 @@ function AnyCoinInRow(i) {
         return evt.name.equals("Coin") && evt.data.row == i;
     })
 }
-//endregion
 
-//region EventSets - strategies
-function AnyCoinInFive(id, fiveCells) {
-    return bp.EventSet("Any coin in five " + id, function (e) {
-        if (!e.name.equals("Coin")) return false
-        for (let i = 0; i < fiveCells.length; i++)
-            if (fiveCells[i].row == e.data.row && fiveCells[i].col == e.data.col)
+function AnyCoinInLine(id, lineCells) {
+    return bp.EventSet("Any coin in line " + id, function (e) {
+        if (!e.name.equals("Coin"))
+            return false
+        for (let i = 0; i < lineCells.length; i++)
+            if (lineCells[i].row == e.data.row && lineCells[i].col == e.data.col)
                 return true
+        return false
     })
 }
 //endregion
@@ -68,6 +68,23 @@ bthread("EnforceTurns", function() {
         sync({ waitFor: AnyCoin, block: [yellowColES, redColES]})
     }
 });
+
+ctx.bthread("win", "Four.All", function (four) {
+    let color = sync({waitFor: AnyCoinInLine(four.id, four.cells)}).data.color
+    for (let i = 0; i < 3; i++) {
+        let e = sync({waitFor: AnyCoinInLine(four.id, four.cells)})
+        if (e.data.color != color)
+            return
+    }
+    bp.log.info(four.id + " Winner: " + color)
+    sync({request: Event("Win", {color: color})})
+})
+
+ctx.bthread("Game over", "Game over", function (four) {
+    bp.log.info("Game over")
+    sync({block: bp.eventSets.all})
+})
+
 //endregion
 
 
@@ -93,14 +110,14 @@ bthread("EnforceTurns", function() {
 ctx.bthread("random yellow player", "Column.All", function (column) {
     while(true) {
         let e = sync({request: Event("Put", {color: 'Yellow', col: column.col})})
-        bp.log.info("ZZ random yellow player, got: " + e)
+        // bp.log.info("ZZ random yellow player, got: " + e)
     }
 })
 
 ctx.bthread("random red player", "Column.All", function (column) {
     while(true) {
         let e = sync({request: Event("Put", {color: 'Red', col: column.col})})
-        bp.log.info("ZZ random red player, got: " + e)
+        // bp.log.info("ZZ random red player, got: " + e)
     }
 })
 //endregion

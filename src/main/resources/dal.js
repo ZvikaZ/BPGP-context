@@ -7,19 +7,9 @@ function buildLine(line) {
     return 'line: ' + line.map(cell => cell.row + ',' + cell.col).join("; ")
 }
 
-//TODO move to official: ctx.has
-function ctx_has(id) {
-    try {
-        let entity = ctx.getEntityById(id)
-        return true
-    } catch (e) {
-        return false
-    }
-}
-
 //endregion
 
-//TODO end-of-game, win, draw
+//TODO draw
 
 //region Context population - basic game
 const ROWS = 6
@@ -40,6 +30,34 @@ for (let j = 0; j < COLS; j++) {
     }
 }
 
+let fours = []
+
+for (let i = 0; i < ROWS; i++) {
+    for (let j = 0; j <= COLS - 4; j++) {
+        let right = []
+        for (let k = 0; k < 4; k++) {
+            right.push({row: i, col: j + k})
+        }
+        fours.push(ctx.Entity("four right (" + i + "," + j + ")", "four", {
+            cells: right
+        }))
+    }
+}
+
+for (let i = 0; i < ROWS - 4; i++) {
+    for (let j = 0; j <= COLS; j++) {
+        let up = []
+        for (let k = 0; k < 4; k++) {
+            up.push({row: i + k, col: j})
+        }
+        fours.push(ctx.Entity("four up (" + i + "," + j + ")", "four", {
+            cells: up
+        }))
+    }
+}
+
+//TODO add diagonals
+
 //endregion
 
 //region Context population - strategies
@@ -59,7 +77,7 @@ for (let i = 0; i < ROWS - 5; i++) { // ACHIYA: These are not all fives...
 }
 
 // TODO is it possible to split to two?
-ctx.populateContext(cells.concat(columns).concat(fives))
+ctx.populateContext(cells.concat(columns).concat(fives).concat(fours))
 //endregion
 
 //region Queries - basic game
@@ -70,6 +88,15 @@ ctx.registerQuery("Cell.All", function (entity) {
 ctx.registerQuery("Column.All", function (entity) {
     return entity.type.equals("column")
 })
+
+ctx.registerQuery("Four.All", function (entity) {
+    return entity.type.equals("four")
+})
+
+ctx.registerQuery("Game over", function (entity) {
+    return entity.id.equals("Game over")
+})
+
 //endregion
 
 //region Queries - strategies
@@ -93,6 +120,9 @@ ctx.registerEffect("Coin", function (data) {
 // let fiveRight = ctx.getEntityById("")
 })
 
+ctx.registerEffect("Win", function (data) {
+    ctx.insertEntity(ctx.Entity("Game over"))
+})
 //endregion
 
 //region Effects - strategies
