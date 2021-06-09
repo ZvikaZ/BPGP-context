@@ -44,8 +44,8 @@ for (let i = 0; i < ROWS; i++) {
     }
 }
 
-for (let i = 0; i < ROWS - 4; i++) {
-    for (let j = 0; j <= COLS; j++) {
+for (let i = 0; i <= ROWS - 4; i++) {
+    for (let j = 0; j < COLS; j++) {
         let up = []
         for (let k = 0; k < 4; k++) {
             up.push({row: i + k, col: j})
@@ -56,7 +56,30 @@ for (let i = 0; i < ROWS - 4; i++) {
     }
 }
 
-//TODO add diagonals
+for (let i = 0; i <= ROWS - 4; i++) {
+    for (let j = 0; j <= COLS - 4; j++) {
+        let diag = []
+        for (let k = 0; k < 4; k++) {
+            diag.push({row: i + k, col: j + k})
+        }
+        fours.push(ctx.Entity("four up-right (" + i + "," + j + ")", "four", {
+            cells: diag
+        }))
+    }
+}
+
+for (let i = 0; i <= ROWS - 4; i++) {
+    for (let j = 4 - 1; j < COLS; j++) {
+        let diag = []
+        for (let k = 0; k < 4; k++) {
+            diag.push({row: i + k, col: j - k})
+        }
+        fours.push(ctx.Entity("four up-left (" + i + "," + j + ")", "four", {
+            cells: diag
+        }))
+    }
+}
+
 
 //endregion
 
