@@ -80,10 +80,19 @@ ctx.bthread("win", "Four.All", function (four) {
     sync({request: Event("Win", {color: color})})
 })
 
-ctx.bthread("Game over", "Game over", function (four) {
-    bp.log.info("Game over")
+ctx.bthread("Game over", "Game over", function (data) {
+    bp.log.info("Game over. ")
+    bp.log.info(data)
     sync({block: bp.eventSets.all})
 })
+
+//TODO verify draw (after fixing block issue)
+ctx.bthread("Detect draw", "Game ongoing", function (data) {
+    sync({waitFor: Event("Potential draw")})
+    bp.log.info("Draw")
+    sync({request: Event("Draw")})
+})
+
 
 //endregion
 

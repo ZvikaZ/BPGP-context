@@ -9,8 +9,6 @@ function buildLine(line) {
 
 //endregion
 
-//TODO draw
-
 //region Context population - basic game
 const ROWS = 6
 const COLS = 7
@@ -80,6 +78,8 @@ for (let i = 0; i <= ROWS - 4; i++) {
     }
 }
 
+let numOfPlys = ctx.Entity("num of plys", "", {num: 0})
+let gameOngoing = ctx.Entity("game ongoing")
 
 //endregion
 
@@ -100,8 +100,9 @@ for (let i = 0; i < ROWS - 5; i++) { // ACHIYA: These are not all fives...
 }
 
 // TODO is it possible to split to two?
-ctx.populateContext(cells.concat(columns).concat(fives).concat(fours))
+ctx.populateContext(cells.concat(columns).concat(fives).concat(fours).concat([numOfPlys, gameOngoing]))
 //endregion
+
 
 //region Queries - basic game
 ctx.registerQuery("Cell.All", function (entity) {
@@ -116,8 +117,12 @@ ctx.registerQuery("Four.All", function (entity) {
     return entity.type.equals("four")
 })
 
+ctx.registerQuery("Game ongoing", function (entity) {
+    return entity.id.equals("game ongoing")
+})
+
 ctx.registerQuery("Game over", function (entity) {
-    return entity.id.equals("Game over")
+    return entity.id.equals("game over")
 })
 
 //endregion
@@ -140,11 +145,29 @@ ctx.registerEffect("Coin", function (data) {
         ctx.updateEntity(cell)
     }
 
+    let numOfPlys = ctx.getEntityById("num of plys")
+    numOfPlys.num++
+    bp.log.info("Num of plys: " + numOfPlys.num)
+    ctx.updateEntity(numOfPlys)
+    if (numOfPlys.num >= ROWS * COLS) {
+        // maybe we have a race condition with a win, thus, only it's only a 'potential' draw
+        sync({request: Event("Potential draw")})
+    }
+
 // let fiveRight = ctx.getEntityById("")
 })
 
+function gameOver(type, data) {
+    ctx.removeEntity(ctx.Entity("game ongoing"))
+    ctx.insertEntity(ctx.Entity("game over", type, data))
+}
+
 ctx.registerEffect("Win", function (data) {
-    ctx.insertEntity(ctx.Entity("Game over"))
+    gameOver("win", data)
+})
+
+ctx.registerEffect("Draw", function (data) {
+    gameOver("draw", {})
 })
 //endregion
 
