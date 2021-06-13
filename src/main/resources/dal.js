@@ -30,11 +30,14 @@ function createLines(len, kind) {
     for (let i = 0; i < ROWS; i++) {
         for (let j = 0; j <= COLS - len; j++) {
             let right = []
+            let right_underneath = []
             for (let k = 0; k < len; k++) {
                 right.push({row: i, col: j + k, edge: k == 0 || k == (len-1) ? true : false})
+                right_underneath.push({row: i - 1, col: j + k, edge: k == 0 || k == (len-1) ? true : false})
             }
             lines.push(ctx.Entity(kind +" right (" + i + "," + j + ")", kind, {
                 cells: right,
+                cells_underneath: right_underneath,
                 status: i == 0 ? "READY" : "NOT-READY"
             }))
         }
@@ -43,11 +46,14 @@ function createLines(len, kind) {
     for (let i = 0; i <= ROWS - len; i++) {
         for (let j = 0; j < COLS; j++) {
             let up = []
+            let up_underneath = []
             for (let k = 0; k < len; k++) {
                 up.push({row: i + k, col: j, edge: k == 0 || k == (len-1) ? true : false})
+                up_underneath.push({row: i + k - 1, col: j, edge: k == 0 || k == (len-1) ? true : false})
             }
             lines.push(ctx.Entity(kind + " up (" + i + "," + j + ")", kind, {
                 cells: up,
+                cells_underneath: up_underneath,
                 status: "NOT-READY"
             }))
         }
@@ -56,11 +62,14 @@ function createLines(len, kind) {
     for (let i = 0; i <= ROWS - len; i++) {
         for (let j = 0; j <= COLS - len; j++) {
             let diag = []
+            let diag_underneath = []
             for (let k = 0; k < len; k++) {
                 diag.push({row: i + k, col: j + k, edge: k == 0 || k == (len-1) ? true : false})
+                diag_underneath.push({row: i + k - 1, col: j + k, edge: k == 0 || k == (len-1) ? true : false})
             }
             lines.push(ctx.Entity(kind + " up-right (" + i + "," + j + ")", kind, {
                 cells: diag,
+                cells_underneath: diag_underneath,
                 status: "NOT-READY"
             }))
         }
@@ -69,11 +78,14 @@ function createLines(len, kind) {
     for (let i = 0; i <= ROWS - len; i++) {
         for (let j = len - 1; j < COLS; j++) {
             let diag = []
+            let diag_underneath = []
             for (let k = 0; k < len; k++) {
                 diag.push({row: i + k, col: j - k, edge: k == 0 || k == (len-1) ? true : false})
+                diag_underneath.push({row: i + k - 1, col: j - k, edge: k == 0 || k == (len-1) ? true : false})
             }
             lines.push(ctx.Entity(kind + " up-left (" + i + "," + j + ")", kind, {
                 cells: diag,
+                cells_underneath: diag_underneath,
                 status: "NOT-READY"
             }))
         }
@@ -120,6 +132,10 @@ ctx.registerQuery("Game over", function (entity) {
 //endregion
 
 //region Queries - strategies
+ctx.registerQuery("Five.NotBad", function (entity) {
+    return entity.type.equals("five") && !entity.status.equals("BAD")
+})
+
 ctx.registerQuery("Five.Ready", function (entity) {
     return entity.type.equals("five") && entity.status.equals("READY")
 })
@@ -170,4 +186,11 @@ ctx.registerEffect("Five is ready", function (data) {
     five.status = "READY"
     ctx.updateEntity(five)
 })
+
+ctx.registerEffect("Five is bad", function (data) {
+    const five = ctx.getEntityById(data)
+    five.status = "BAD"
+    ctx.updateEntity(five)
+})
+
 //endregion

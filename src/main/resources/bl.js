@@ -1,5 +1,7 @@
 //region EventSets - basic game
 
+const MYCOLOR = "Yellow"
+
 //TODO is it better to turn these to functions? (line AnyPutInCol)
 const redColES = bp.EventSet("Red Col moves", function(evt){
     return evt.name.equals("Put") && evt.data.color.equals("Red");
@@ -17,13 +19,6 @@ function AnyPutInCol(j) {
     return bp.EventSet("Any put in column " + j, function (evt) {
         // bp.log.info("ZZ AnyPutInCol. j=" + j + ". evt.name=" + evt.name + ". evt.data.col="+evt.data.col + ". ==?" + (evt.data.col==j) + ". result: " + (evt.name.equals("Put") && evt.data.col == j))
         return evt.name.equals("Put") && evt.data.col == j;
-    })
-}
-
-//TODO del?
-function AnyCoinInRow(i) {
-    return bp.EventSet("Any coin in row " + i, function (evt) {
-        return evt.name.equals("Coin") && evt.data.row == i;
     })
 }
 
@@ -97,23 +92,6 @@ ctx.bthread("Detect draw", "Game ongoing", function (data) {
 
 //endregion
 
-
-// //region manage fives' state
-// ctx.bthread("mark horizontal fives as ready", "Five.All", function (five) {
-//     let count = 0
-//     while (true) {
-//         let col = sync({waitFor: AnyCoinInRow(five.cells[0].row - 1)})
-//         if (col >= five.cells[0].col || col <= five.cells[5].col)
-//             count++
-//         if (count == 5) {
-//             sync({request: Event("Five is ready", five.id)})
-//             return
-//         }
-//     }
-// })
-// //endregion
-
-
 //region Random players
 ctx.bthread("random yellow player", "Column.All", function (column) {
     while(true) {
@@ -162,4 +140,41 @@ bthread("boardPrinter", function() {
         bp.log.info("--------------------")
     }
 });
+//endregion
+
+
+// region strategies - five
+ctx.bthread("mark fives as ready", "Five.NotBad", function (five) {
+    for (let i = 0; i < five.cells_underneath.length; i++)
+        sync({waitFor: AnyCoinInLine(five.id, five.cells_underneath)})
+    bp.log.info("Five is ready: " + five.id)
+    sync({request: Event("Five is ready", five.id)})
+})
+
+ctx.bthread("mark fives as bad", "Five.NotBad", function (five) {
+    while (true) {
+        let e = sync({waitFor: AnyCoinInLine(five.id, five.cells)})
+        if (e.data.color != MYCOLOR) {
+            bp.log.info("Bad color: " + five.id)
+            sync({request: Event("Five is bad", five.id)})
+        }
+    }
+})
+
+ctx.bthread("use ready fives", "Five.Ready", function (five) {
+    while (true) {
+        let requesting = []
+        //TODO edge
+        //TODO don't request cells that are already my color - probably by removing them from entity
+        for (let i = 0; i < five.cells.length; i++) {
+            requesting.push(Event("Put", {color: MYCOLOR, col: five.cells[i].col}))
+        }
+        bp.log.info("Requesting ready five: " + five.id)
+        bp.log.info(requesting)
+        let e = bp.sync({request: requesting}, 50)      //TODO calc priority
+        bp.log.info(five.id + " got: ")
+        bp.log.info(e)
+    }
+})
+
 //endregion
