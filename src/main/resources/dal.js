@@ -3,10 +3,6 @@ function buildCellId(row, col) {
     return 'cell: ' + row + ", " + col
 }
 
-function buildLine(line) {
-    return 'line: ' + line.map(cell => cell.row + ',' + cell.col).join("; ")
-}
-
 //endregion
 
 //region Context population - basic game
@@ -28,55 +24,63 @@ for (let j = 0; j < COLS; j++) {
     }
 }
 
-let fours = []
 
-for (let i = 0; i < ROWS; i++) {
-    for (let j = 0; j <= COLS - 4; j++) {
-        let right = []
-        for (let k = 0; k < 4; k++) {
-            right.push({row: i, col: j + k})
+function createLines(len, kind) {
+    let lines = []
+    for (let i = 0; i < ROWS; i++) {
+        for (let j = 0; j <= COLS - len; j++) {
+            let right = []
+            for (let k = 0; k < len; k++) {
+                right.push({row: i, col: j + k, edge: k == 0 || k == (len-1) ? true : false})
+            }
+            lines.push(ctx.Entity(kind +" right (" + i + "," + j + ")", kind, {
+                cells: right,
+                status: i == 0 ? "READY" : "NOT-READY"
+            }))
         }
-        fours.push(ctx.Entity("four right (" + i + "," + j + ")", "four", {
-            cells: right
-        }))
     }
-}
 
-for (let i = 0; i <= ROWS - 4; i++) {
-    for (let j = 0; j < COLS; j++) {
-        let up = []
-        for (let k = 0; k < 4; k++) {
-            up.push({row: i + k, col: j})
+    for (let i = 0; i <= ROWS - len; i++) {
+        for (let j = 0; j < COLS; j++) {
+            let up = []
+            for (let k = 0; k < len; k++) {
+                up.push({row: i + k, col: j, edge: k == 0 || k == (len-1) ? true : false})
+            }
+            lines.push(ctx.Entity(kind + " up (" + i + "," + j + ")", kind, {
+                cells: up,
+                status: "NOT-READY"
+            }))
         }
-        fours.push(ctx.Entity("four up (" + i + "," + j + ")", "four", {
-            cells: up
-        }))
     }
-}
 
-for (let i = 0; i <= ROWS - 4; i++) {
-    for (let j = 0; j <= COLS - 4; j++) {
-        let diag = []
-        for (let k = 0; k < 4; k++) {
-            diag.push({row: i + k, col: j + k})
+    for (let i = 0; i <= ROWS - len; i++) {
+        for (let j = 0; j <= COLS - len; j++) {
+            let diag = []
+            for (let k = 0; k < len; k++) {
+                diag.push({row: i + k, col: j + k, edge: k == 0 || k == (len-1) ? true : false})
+            }
+            lines.push(ctx.Entity(kind + " up-right (" + i + "," + j + ")", kind, {
+                cells: diag,
+                status: "NOT-READY"
+            }))
         }
-        fours.push(ctx.Entity("four up-right (" + i + "," + j + ")", "four", {
-            cells: diag
-        }))
     }
-}
 
-for (let i = 0; i <= ROWS - 4; i++) {
-    for (let j = 4 - 1; j < COLS; j++) {
-        let diag = []
-        for (let k = 0; k < 4; k++) {
-            diag.push({row: i + k, col: j - k})
+    for (let i = 0; i <= ROWS - len; i++) {
+        for (let j = len - 1; j < COLS; j++) {
+            let diag = []
+            for (let k = 0; k < len; k++) {
+                diag.push({row: i + k, col: j - k, edge: k == 0 || k == (len-1) ? true : false})
+            }
+            lines.push(ctx.Entity(kind + " up-left (" + i + "," + j + ")", kind, {
+                cells: diag,
+                status: "NOT-READY"
+            }))
         }
-        fours.push(ctx.Entity("four up-left (" + i + "," + j + ")", "four", {
-            cells: diag
-        }))
     }
+    return lines
 }
+let fours = createLines(4, "four")
 
 let numOfPlys = ctx.Entity("num of plys", "", {num: 0})
 let gameOngoing = ctx.Entity("game ongoing")
@@ -84,20 +88,8 @@ let gameOngoing = ctx.Entity("game ongoing")
 //endregion
 
 //region Context population - strategies
-const fives = []
+const fives = createLines(5, "five")
 
-for (let i = 0; i < ROWS - 5; i++) { // ACHIYA: These are not all fives...
-    for (let j = 0; j < COLS - 5; j++) {
-        let right = []
-        for (let k = 0; k < 5; k++) {
-            right.push({row: i, col: j + k, edge: k == 0 || k == 4 ? true : false})
-        }
-        fives.push(ctx.Entity("five right (" + i + "," + j + ")", "five", {
-            cells: right,
-            status: i == 0 ? "READY" : "NOT-READY"
-        }))
-    }
-}
 
 // TODO is it possible to split to two?
 ctx.populateContext(cells.concat(columns).concat(fives).concat(fours).concat([numOfPlys, gameOngoing]))
@@ -137,6 +129,7 @@ ctx.registerQuery("Five.Ready", function (entity) {
 ctx.registerEffect("Coin", function (data) {
     let cell = ctx.getEntityById(buildCellId(data.row, data.col))
     cell.color = data.color
+    //TODO update NOT-READY ?
     ctx.updateEntity(cell)
 
     if (data.row < ROWS - 1) {
@@ -154,7 +147,7 @@ ctx.registerEffect("Coin", function (data) {
         sync({request: Event("Potential draw")})
     }
 
-// let fiveRight = ctx.getEntityById("")
+// let fiveRight = ctx.getEntityById("")    //TODO del?
 })
 
 function gameOver(type, data) {

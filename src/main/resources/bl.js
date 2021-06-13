@@ -1,4 +1,6 @@
 //region EventSets - basic game
+
+//TODO is it better to turn these to functions? (line AnyPutInCol)
 const redColES = bp.EventSet("Red Col moves", function(evt){
     return evt.name.equals("Put") && evt.data.color.equals("Red");
 });
@@ -18,6 +20,7 @@ function AnyPutInCol(j) {
     })
 }
 
+//TODO del?
 function AnyCoinInRow(i) {
     return bp.EventSet("Any coin in row " + i, function (evt) {
         return evt.name.equals("Coin") && evt.data.row == i;
@@ -41,8 +44,6 @@ function Coin(row, col, color) {
     return Event("Coin", {color: color, row: row, col: col});
 }
 //endregion
-
-//region behavior
 
 //region rules
 ctx.bthread("block put in full columns", "Column.All", function (column) {
@@ -111,8 +112,6 @@ ctx.bthread("Detect draw", "Game ongoing", function (data) {
 //     }
 // })
 // //endregion
-
-//endregion
 
 
 //region Random players
