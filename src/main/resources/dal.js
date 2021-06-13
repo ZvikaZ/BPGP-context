@@ -193,4 +193,17 @@ ctx.registerEffect("Five is bad", function (data) {
     ctx.updateEntity(five)
 })
 
+ctx.registerEffect("Remove cell from five", function (data) {
+    const five = ctx.getEntityById(data.id)
+    let newCells = []
+    for (let i = 0; i < five.cells.length; i++) {
+        let cell = five.cells[i]
+        if (cell.row != data.coin.row || cell.col != data.coin.col)
+            newCells.push(cell)
+    }
+    five.cells = newCells
+    ctx.updateEntity(five)
+})
+
+
 //endregion

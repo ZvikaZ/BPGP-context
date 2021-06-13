@@ -151,12 +151,15 @@ ctx.bthread("mark fives as ready", "Five.NotBad", function (five) {
     sync({request: Event("Five is ready", five.id)})
 })
 
-ctx.bthread("mark fives as bad", "Five.NotBad", function (five) {
+ctx.bthread("mark fives as bad, or update cell's color", "Five.NotBad", function (five) {
     while (true) {
         let e = sync({waitFor: AnyCoinInLine(five.id, five.cells)})
         if (e.data.color != MYCOLOR) {
             bp.log.info("Bad color: " + five.id)
             sync({request: Event("Five is bad", five.id)})
+        } else {
+            bp.log.info("Good color: " + five.id)
+            sync({request: Event("Remove cell from five", {id: five.id, coin: e.data})})
         }
     }
 })
@@ -165,7 +168,6 @@ ctx.bthread("use ready fives", "Five.Ready", function (five) {
     while (true) {
         let requesting = []
         //TODO edge
-        //TODO don't request cells that are already my color - probably by removing them from entity
         for (let i = 0; i < five.cells.length; i++) {
             requesting.push(Event("Put", {color: MYCOLOR, col: five.cells[i].col}))
         }
