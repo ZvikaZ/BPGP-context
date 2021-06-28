@@ -1,4 +1,9 @@
+/* global bp, importPackage, Packages, EventSets */ // <-- Turn off warnings
+
 //region EventSets - basic game
+
+// TODO remove after fixing BPjs bug
+importPackage(Packages.connectedFour);
 
 const MYCOLOR = "Yellow"
 
@@ -64,6 +69,7 @@ bthread("EnforceTurns", function() {
         sync({ waitFor: AnyCoin, block: [yellowColES, redColES]})
     }
 });
+
 
 ctx.bthread("win", "Four.All", function (four) {
     let color = sync({waitFor: AnyCoinInLine(four.id, four.cells)}).data.color
@@ -151,6 +157,7 @@ ctx.bthread("mark fives as ready", "Five.NotBad", function (five) {
     sync({request: Event("Five is ready", five.id)})
 })
 
+//TODO remove -else
 ctx.bthread("mark fives as bad, or update cell's color", "Five.NotBad", function (five) {
     while (true) {
         let e = sync({waitFor: AnyCoinInLine(five.id, five.cells)})
@@ -159,23 +166,22 @@ ctx.bthread("mark fives as bad, or update cell's color", "Five.NotBad", function
             sync({request: Event("Five is bad", five.id)})
         } else {
             bp.log.info("Good color: " + five.id)
+            //TODO problem: it doesn't interfere with existing five!
             sync({request: Event("Remove cell from five", {id: five.id, coin: e.data})})
         }
     }
 })
 
-ctx.bthread("use ready fives", "Five.Ready", function (five) {
+// T1ODO array of putincol (initial check)
+ctx.bthread("request ready fives", "Five.Ready", function (five) {
     while (true) {
         let requesting = []
-        //TODO edge
+        // TODO edge [Moshe: this code is being changed right now,
+        // currently it doesn't handle 'edge's - the neighboring 2 pieces]
         for (let i = 0; i < five.cells.length; i++) {
             requesting.push(Event("Put", {color: MYCOLOR, col: five.cells[i].col}))
         }
-        bp.log.info("Requesting ready five: " + five.id)
-        bp.log.info(requesting)
         let e = bp.sync({request: requesting}, 50)      //TODO calc priority
-        bp.log.info(five.id + " got: ")
-        bp.log.info(e)
     }
 })
 

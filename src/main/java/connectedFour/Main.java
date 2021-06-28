@@ -1,3 +1,4 @@
+package connectedFour;
 
 import il.ac.bgu.cs.bp.bpjs.context.ContextBProgram;
 import il.ac.bgu.cs.bp.bpjs.context.PrintCOBProgramRunnerListener;
