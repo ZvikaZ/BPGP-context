@@ -7,7 +7,7 @@ importPackage(Packages.connectedFour);
 
 const MYCOLOR = "Yellow"
 
-//TODO is it better to turn these to functions? (line AnyPutInCol)
+//TODO is it better to turn these to functions? (like AnyPutInCol)
 const redColES = bp.EventSet("Red Col moves", function(evt){
     return evt.name.equals("Put") && evt.data.color.equals("Red");
 });
@@ -172,11 +172,11 @@ ctx.bthread("mark fives as bad, or update cell's color", "Five.NotBad", function
     }
 })
 
-// T1ODO array of putincol (initial check)
+// TODO array of putincol (initial check)
 ctx.bthread("request ready fives", "Five.Ready", function (five) {
     while (true) {
         let requesting = []
-        // TODO edge [Moshe: this code is being changed right now,
+        // TODO edge
         // currently it doesn't handle 'edge's - the neighboring 2 pieces]
         for (let i = 0; i < five.cells.length; i++) {
             requesting.push(Event("Put", {color: MYCOLOR, col: five.cells[i].col}))
