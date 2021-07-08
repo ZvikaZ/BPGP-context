@@ -149,6 +149,33 @@ bthread("boardPrinter", function() {
 //endregion
 
 
+// region strategies - four
+
+ctx.bthread("catch fourth", "Four.All", function (four) {
+    let requesting = []
+    for (let i = 0; i < four.cells.length; i++) {
+        requesting.push(four.cells[i].col)
+    }
+
+    for (let i = 0; i < 3; i++) {
+        let e = sync({waitFor: AnyCoinInLine(four.id, four.cells)})
+        if (e.data.color != MYCOLOR)        //TODO generalize to avoid loss, not only try to win
+            return
+        requesting.splice(requesting.indexOf(e.data.col), 1)
+    }
+    if (requesting.length != 1) {
+        bp.log.warn("ERROR: requesting size is " + requesting.length)
+        exit(1)
+    } else {
+        bp.log.info(four.id + " ZZZ requesting: " + requesting[0])
+        sync({request: Event("Put", {color: MYCOLOR, col: requesting[0]})}, 100)
+    }
+})
+
+//endregion
+
+/*
+
 // region strategies - five
 ctx.bthread("mark fives as ready", "Five.NotBad", function (five) {
     for (let i = 0; i < five.cells_underneath.length; i++)
@@ -184,5 +211,6 @@ ctx.bthread("request ready fives", "Five.Ready", function (five) {
         let e = bp.sync({request: requesting}, 50)      //TODO calc priority
     }
 })
+*/
 
 //endregion
