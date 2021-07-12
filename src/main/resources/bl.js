@@ -152,23 +152,32 @@ bthread("boardPrinter", function() {
 // region strategies - four
 
 ctx.bthread("catch fourth", "Four.All", function (four) {
-    let requesting = []
+    let columns = []
     for (let i = 0; i < four.cells.length; i++) {
-        requesting.push(four.cells[i].col)
+        columns.push(four.cells[i].col)
     }
 
+    let e
     for (let i = 0; i < 3; i++) {
-        let e = sync({waitFor: AnyCoinInLine(four.id, four.cells)})
+        e = sync({waitFor: AnyCoinInLine(four.id, four.cells)})
         if (e.data.color != MYCOLOR)        //TODO generalize to avoid loss, not only try to win
             return
-        requesting.splice(requesting.indexOf(e.data.col), 1)
+        columns.splice(columns.indexOf(e.data.col), 1)
     }
-    if (requesting.length != 1) {
-        bp.log.warn("ERROR: requesting size is " + requesting.length)
+
+    if (columns.length != 1) {
+        bp.log.warn("ERROR: requesting size is " + columns.length)
         exit(1)
     } else {
-        bp.log.info(four.id + " ZZZ requesting: " + requesting[0])
-        sync({request: Event("Put", {color: MYCOLOR, col: requesting[0]})}, 100)
+        let cell = four.cells.find(element => element.col == columns[0])
+        bp.log.info(four.id + " ZZZ catch fourth, last column: " + columns[0] + ' ' + cell)
+        bp.log.info(cell.row + " <-> " + e.data.row)
+        if (cell.row == e.data.row) {
+            bp.log.info("catch fourth, requesting " + columns[0])
+            sync({request: Event("Put", {color: MYCOLOR, col: columns[0]})}, 100)
+        } else {
+            sync({waitFor: Coin(cell.row - 1, column.col, color)})
+        }
     }
 })
 
