@@ -16,7 +16,7 @@ bthread("EnforceTurns", function() {
 ctx.bthread("random player", "Action.All", function (action) {
     while(true) {
         let e = sync({request: Event("Play", {id: action.id})})
-        // bp.log.info("ZZ random player, got: " + e)
+        bp.log.info("ZZ random player, got: " + e)
     }
 })
 
@@ -27,10 +27,10 @@ ctx.bthread("Game over", "Game over", function (data) {
 })
 
 ctx.bthread("wumpus - eat", "Wumpus.Alive", function (wumpus) {
-    bp.log.info("wumpus - eat")
-    bp.log.info(wumpus)
-    let e = sync({waitFor: AnyActionDone})
-    bp.log.info("WUMPUS! " + e.data.id)
-    bp.log.info(e)
-    //TODO
+    while (true) {
+        let e = sync({waitFor: AnyActionDone})
+        let player = e.data.player
+        if (wumpus.row == player.row && wumpus.col == player.col)
+            sync({request: Event("Wumpus lunch")})
+    }
 })

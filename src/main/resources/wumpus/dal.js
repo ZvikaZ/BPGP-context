@@ -64,7 +64,20 @@ ctx.registerQuery("Action.All", function (entity) {
     return entity.type.equals("action")
 })
 
+function updateScore(delta) {
+    let score = ctx.getEntityById("score")
+    score.val += delta
+    ctx.updateEntity(score)
+}
+
+function gameOver(type) {
+    let score = ctx.getEntityById("score")
+    ctx.removeEntity(ctx.Entity("game ongoing"))
+    ctx.insertEntity(ctx.Entity("game over", type, {score: score.val}))
+}
+
 ctx.registerEffect("Play", function (action) {
+    updateScore(-1)
     let player = ctx.getEntityById("player")
     bp.log.info(player)
     if (action.id.equals("forward")) {
@@ -92,9 +105,7 @@ ctx.registerEffect("Play", function (action) {
         if (gold.status.equals("ready") && gold.row == player.row && gold.col == player.col) {
             gold.status = "taken"
             ctx.updateEntity(gold)
-            let score = ctx.getEntityById("score")
-            score.val += 1000
-            ctx.updateEntity(score)
+            updateScore(1000);
         }
     } else if (action.id.equals("shoot")) {
         let arrows = ctx.getEntityById("arrows")
@@ -113,18 +124,19 @@ ctx.registerEffect("Play", function (action) {
         }
     } else if (action.id.equals("climb")) {
         if (player.row == 1 && player.col == 1) {
-            let score = ctx.getEntityById("score")
-            gameOver("climbed", {score: score.val})
+            gameOver("climbed")
         }
     } else {
         bp.log.info("Unrecognized action: " + action.id)
         exit() // 'exit' is undefined - but anyway, it achieves its goal...
     }
-    sync({request: Event("Action done", {id: action.id})})
+    sync({request: Event("Action done", {
+        id: action.id,
+        player: player
+    })})
 })
 
-function gameOver(type, data) {
-    ctx.removeEntity(ctx.Entity("game ongoing"))
-    ctx.insertEntity(ctx.Entity("game over", type, data))
-}
-
+ctx.registerEffect("Wumpus lunch", function (effect) {
+    updateScore(-1000);
+    gameOver("wumpus lunch")
+})
