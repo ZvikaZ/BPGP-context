@@ -28,7 +28,7 @@ public class Main {
 
 
     public static void main(final String[] args) throws URISyntaxException {
-        BProgram bprog = new ContextBProgram("dal.js", "bl.js");
+        BProgram bprog = new ContextBProgram("wumpus/dal.js", "wumpus/bl.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
