@@ -37,7 +37,8 @@ let player = ctx.Entity("player", "", {
 // player's knowledge base
 let kb = ctx.Entity("kb", "", {
     wumpus: 'alive',
-    has_gold: false
+    has_gold: false,
+    actions_history: []
 })
 
 let cells = []
@@ -62,8 +63,12 @@ ctx.registerQuery("Pit.All", function (entity) {
     return entity.type.equals("pit")
 })
 
-ctx.registerQuery("Gold", function (entity) {
+ctx.registerQuery("Cell.Gold", function (entity) {
     return entity.id.equals("gold")
+})
+
+ctx.registerQuery("Gold.Ready", function (entity) {
+    return entity.id.equals("kb") && !entity.has_gold
 })
 
 ctx.registerQuery("Game ongoing", function (entity) {
@@ -201,6 +206,16 @@ ctx.registerEffect("Took gold", function (effect) {
     kb.has_gold = true
     ctx.updateEntity(kb)
 })
+
+// ctx.registerEffect("Action done", function (effect) {
+//     if (effect.id != null) {
+//         let kb = ctx.getEntityById("kb")
+//         kb.actions_history.push(effect.id)
+//         bp.log.info(kb)
+//         // ctx.updateEntity(kb)
+//     }
+// })
+//
 
 
 

@@ -42,11 +42,10 @@ ctx.bthread("wumpus - smell", "Wumpus.Alive", function (wumpus) {
     }
 })
 
-ctx.bthread("gold - glitter", "Gold", function (gold) {
+ctx.bthread("gold - glitter", "Cell.Gold", function (gold) {
     while (true) {
         let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
-        if (gold.row == player.row && gold.col == player.col)
+        if (playerInCell(e, gold))
             sync({request: Event("Glitter")}, 1000)
     }
 })
@@ -76,8 +75,7 @@ bthread("Start", function () {
 ///////////            strategies            //////////////
 ///////////////////////////////////////////////////////////
 
-
-bthread("Grab gold", function() {
+ctx.bthread("Grab gold", "Gold.Ready", function (gold) {
     while (true) {
         sync({waitFor: Event("Glitter")});
         sync({request: Event("Play", {id: 'grab'})}, 100)
@@ -134,3 +132,5 @@ ctx.bthread("leave", "Cell.Opening", function (cell) {
 })
 
 //TODO when to shoot?
+
+
