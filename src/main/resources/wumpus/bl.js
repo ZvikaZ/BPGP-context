@@ -3,6 +3,11 @@ function near(a, b) {
             (a.col == b.col && ((a.row == b.row + 1) || (a.row == b.row -1)))
 }
 
+function playerInCell(e, cell) {
+    let player = e.data.player
+    return cell.row == player.row && cell.col == player.col
+}
+
 const AnyPlay = bp.EventSet("Play", function (evt) {
     return evt.name.equals("play")
 })
@@ -49,8 +54,7 @@ ctx.bthread("gold - glitter", "Gold", function (gold) {
 ctx.bthread("pit - fall", "Pit.All", function (pit) {
     while (true) {
         let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
-        if (pit.row == player.row && pit.col == player.col)
+        if (playerInCell(e, pit))
             sync({request: Event("Fell in pit")}, 1000)
     }
 })
@@ -82,7 +86,9 @@ bthread("Grab gold", function() {
 
 ctx.bthread("player - default", "Cell.All", function (cell) {
     while(true) {
-        sync({request: Event("Play", {id: 'forward'})}, 10)
+        let e = sync({waitFor: AnyActionDone})
+        if (playerInCell(e, cell))
+            sync({request: Event("Play", {id: 'forward'})}, 10)
     }
 })
 
