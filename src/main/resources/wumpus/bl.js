@@ -1,7 +1,6 @@
 function near(a, b) {
-    return
-    (a.row == b.row && ((a.col == b.col + 1) || (a.col == b.col -1))) ||
-    (a.col == b.col && ((a.row == b.row + 1) || (a.row == b.row -1)))
+    return  (a.row == b.row && ((a.col == b.col + 1) || (a.col == b.col -1))) ||
+            (a.col == b.col && ((a.row == b.row + 1) || (a.row == b.row -1)))
 }
 
 const AnyPlay = bp.EventSet("Play", function (evt) {
@@ -81,13 +80,13 @@ bthread("Grab gold", function() {
     }
 });
 
-ctx.bthread("random player", "Cell.All", function (cell) {
+ctx.bthread("player - default", "Cell.All", function (cell) {
     while(true) {
         sync({request: Event("Play", {id: 'forward'})}, 10)
     }
 })
 
-ctx.bthread("random player", "Cell.All", function (cell) {
+ctx.bthread("player - bumps - turn", "Cell.All", function (cell) {
     while(true) {
         sync({waitFor: Event("Bump")})
         //TODO smarter turns?
@@ -95,6 +94,26 @@ ctx.bthread("random player", "Cell.All", function (cell) {
     }
 })
 
+//TODO not good enough. currently it goes in cycles
+ctx.bthread("player - breeze - turn and advance", "Cell.All", function (cell) {
+    while(true) {
+        sync({waitFor: Event("Breeze")})
+        //TODO smarter turns?
+        sync({request: Event("Play", {id: 'turn-right'})}, 20)
+        sync({request: Event("Play", {id: 'turn-right'})}, 20)
+        sync({request: Event("Play", {id: 'forward'})}, 20)
+    }
+})
+
+ctx.bthread("player - stench - turn and advance", "Cell.All", function (cell) {
+    while(true) {
+        sync({waitFor: Event("Stench")})
+        //TODO smarter turns?
+        sync({request: Event("Play", {id: 'turn-right'})}, 20)
+        sync({request: Event("Play", {id: 'turn-right'})}, 20)
+        sync({request: Event("Play", {id: 'forward'})}, 20)
+    }
+})
 
 ctx.bthread("leave", "Cell.Opening", function (cell) {
     while(true) {
@@ -105,7 +124,4 @@ ctx.bthread("leave", "Cell.Opening", function (cell) {
     }
 })
 
-
-
-//TODO stench,breeze
 //TODO when to shoot?
