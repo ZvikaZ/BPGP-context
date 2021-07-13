@@ -48,6 +48,14 @@ ctx.registerQuery("Wumpus.Alive", function (entity) {
     return entity.id.equals("wumpus") && entity.status.equals("alive")
 })
 
+ctx.registerQuery("Pit.All", function (entity) {
+    return entity.type.equals("pit")
+})
+
+ctx.registerQuery("Gold", function (entity) {
+    return entity.id.equals("gold")
+})
+
 ctx.registerQuery("Game ongoing", function (entity) {
     return entity.id.equals("game ongoing")
 })
