@@ -22,7 +22,7 @@ bthread("EnforceTurns", function() {
 ctx.bthread("random player", "Action.All", function (action) {
     while(true) {
         let e = sync({request: Event("Play", {id: action.id})})
-        bp.log.info("ZZ random player, got: " + e)
+        // bp.log.info("ZZ random player, got: " + e)
     }
 })
 

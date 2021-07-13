@@ -1,7 +1,8 @@
+//TODO draw board
+
 const ROWS = 4
 const COLS = 4
 
-let numOfPlys = ctx.Entity("num of plys", "", {num: 0})
 let gameOngoing = ctx.Entity("game ongoing")
 
 let score = ctx.Entity("score", "", {val: 0})
@@ -14,6 +15,7 @@ let wumpus = ctx.Entity("wumpus", "", {
     col: 1
 })
 
+//TODO: randomize gold location
 let gold = ctx.Entity("gold", "", {
     status: 'ready',
     row: 3,
@@ -33,14 +35,14 @@ let player = ctx.Entity("player", "", {
 })
 
 let actions = []
-pits.push(ctx.Entity("forward", "action", {}))
-pits.push(ctx.Entity("turn-left", "action", {}))
-pits.push(ctx.Entity("turn-right", "action", {}))
-pits.push(ctx.Entity("grab", "action", {}))
-pits.push(ctx.Entity("shoot", "action", {}))
-pits.push(ctx.Entity("climb", "action", {}))
+actions.push(ctx.Entity("forward", "action", {}))
+actions.push(ctx.Entity("turn-left", "action", {}))
+actions.push(ctx.Entity("turn-right", "action", {}))
+actions.push(ctx.Entity("grab", "action", {}))
+actions.push(ctx.Entity("shoot", "action", {}))
+actions.push(ctx.Entity("climb", "action", {}))
 
-ctx.populateContext(pits.concat([numOfPlys, gameOngoing, score, arrows, wumpus, gold, player]))
+ctx.populateContext(pits.concat(actions).concat([gameOngoing, score, arrows, wumpus, gold, player]))
 
 
 
@@ -87,7 +89,6 @@ function gameOver(type) {
 ctx.registerEffect("Play", function (action) {
     updateScore(-1)
     let player = ctx.getEntityById("player")
-    bp.log.info(player)
     if (action.id.equals("forward")) {
         if (player.facing == 90 && player.col < COLS)
             player.col++
