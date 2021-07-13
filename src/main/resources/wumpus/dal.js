@@ -34,15 +34,23 @@ let player = ctx.Entity("player", "", {
     facing: 90
 })
 
-let actions = []
-actions.push(ctx.Entity("forward", "action", {}))
-actions.push(ctx.Entity("turn-left", "action", {}))
-actions.push(ctx.Entity("turn-right", "action", {}))
-actions.push(ctx.Entity("grab", "action", {}))
-actions.push(ctx.Entity("shoot", "action", {}))
-actions.push(ctx.Entity("climb", "action", {}))
+// player's knowledge base
+let kb = ctx.Entity("kb", "", {
+    wumpus: 'alive',
+    has_gold: false
+})
 
-ctx.populateContext(pits.concat(actions).concat([gameOngoing, score, arrows, wumpus, gold, player]))
+let cells = []
+for (let i = 1; i <= ROWS; i++)
+    for (let j = 1; j <= COLS; j++)
+        cells.push(ctx.Entity("cell:" + i + "," + j, "cell",{
+            row: i,
+            col: j
+        }))
+
+
+ctx.populateContext(pits.concat(cells).concat(
+    [gameOngoing, score, arrows, wumpus, gold, player, kb]))
 
 
 
@@ -70,8 +78,12 @@ ctx.registerQuery("Player", function (entity) {
     return entity.id.equals("player")
 })
 
-ctx.registerQuery("Action.All", function (entity) {
-    return entity.type.equals("action")
+ctx.registerQuery("Cell.All", function (entity) {
+    return entity.type.equals("cell")
+})
+
+ctx.registerQuery("Cell.Opening", function (entity) {
+    return entity.id.equals("cell:1,1")
 })
 
 function updateScore(delta) {
@@ -84,21 +96,25 @@ function gameOver(type) {
     let score = ctx.getEntityById("score")
     ctx.removeEntity(ctx.Entity("game ongoing"))
     ctx.insertEntity(ctx.Entity("game over", type, {score: score.val}))
+    bp.log.info("Game over: " + type + ", score: " + score.val)
+    sync({block: bp.eventSets.all})
+
 }
 
 ctx.registerEffect("Play", function (action) {
     updateScore(-1)
     let player = ctx.getEntityById("player")
     if (action.id.equals("forward")) {
-        //TODO currently ignoring 'bump'. Consider using it.
         if (player.facing == 90 && player.col < COLS)
             player.col++
-        if (player.facing == 270 && player.col > 1)
+        else if (player.facing == 270 && player.col > 1)
             player.col--
-        if (player.facing == 0 && player.row < ROWS)
+        else if (player.facing == 0 && player.row < ROWS)
             player.row++
-        if (player.facing == 180 && player.row > 1)
+        else if (player.facing == 180 && player.row > 1)
             player.row--
+        else
+            sync({request: Event("Bump")}, 1000)
         ctx.updateEntity(player)
     } else if (action.id.equals("turn-right")) {
         player.facing += 90
@@ -116,6 +132,7 @@ ctx.registerEffect("Play", function (action) {
             gold.status = "taken"
             ctx.updateEntity(gold)
             updateScore(1000);
+            sync({request: Event("Took gold")}, 1000)
         }
     } else if (action.id.equals("shoot")) {
         let arrows = ctx.getEntityById("arrows")
@@ -132,7 +149,7 @@ ctx.registerEffect("Play", function (action) {
             ) {
                 wumpus.status = "dead"
                 ctx.updateEntity(wumpus)
-                sync({request: Event("Scream")})
+                sync({request: Event("Scream")}, 1000)
             }
         }
     } else if (action.id.equals("climb")) {
@@ -145,8 +162,9 @@ ctx.registerEffect("Play", function (action) {
     }
     sync({request: Event("Action done", {
         id: action.id,
-        player: player
-    })})
+        player: player,
+        kb: kb
+    })}, 2000)
 })
 
 ctx.registerEffect("Wumpus lunch", function (effect) {
@@ -158,3 +176,31 @@ ctx.registerEffect("Fell in pit", function (effect) {
     updateScore(-1000);
     gameOver("fell in pit")
 })
+
+// TODO is there a better solution?
+ctx.registerEffect("Start", function (effect) {
+    sync({request: Event("Action done", {
+        id: null,
+        player: ctx.getEntityById("player"),
+        kb: ctx.getEntityById("kb"),
+    })}, 2000)
+})
+
+///////////////////////////////////////////////////////////
+///////////            strategies            //////////////
+///////////////////////////////////////////////////////////
+
+ctx.registerEffect("Scream", function (effect) {
+    let kb = ctx.getEntityById("kb")
+    kb.wumpus = 'dead'
+    ctx.updateEntity(kb)
+})
+
+ctx.registerEffect("Took gold", function (effect) {
+    let kb = ctx.getEntityById("kb")
+    kb.has_gold = true
+    ctx.updateEntity(kb)
+})
+
+
+

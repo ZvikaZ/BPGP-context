@@ -19,25 +19,13 @@ bthread("EnforceTurns", function() {
     }
 });
 
-ctx.bthread("random player", "Action.All", function (action) {
-    while(true) {
-        let e = sync({request: Event("Play", {id: action.id})})
-        // bp.log.info("ZZ random player, got: " + e)
-    }
-})
-
-ctx.bthread("Game over", "Game over", function (data) {
-    bp.log.info("Game over. ")
-    bp.log.info(data)
-    sync({block: bp.eventSets.all})
-})
 
 ctx.bthread("wumpus - eat", "Wumpus.Alive", function (wumpus) {
     while (true) {
         let e = sync({waitFor: AnyActionDone})
         let player = e.data.player
         if (wumpus.row == player.row && wumpus.col == player.col)
-            sync({request: Event("Wumpus lunch")})
+            sync({request: Event("Wumpus lunch")}, 1000)
     }
 })
 
@@ -46,7 +34,7 @@ ctx.bthread("wumpus - smell", "Wumpus.Alive", function (wumpus) {
         let e = sync({waitFor: AnyActionDone})
         let player = e.data.player
         if (near(wumpus, player))
-            sync({request: Event("Stench")})
+            sync({request: Event("Stench")}, 1000)
     }
 })
 
@@ -55,7 +43,7 @@ ctx.bthread("gold - glitter", "Gold", function (gold) {
         let e = sync({waitFor: AnyActionDone})
         let player = e.data.player
         if (gold.row == player.row && gold.col == player.col)
-            sync({request: Event("Glitter")})
+            sync({request: Event("Glitter")}, 1000)
     }
 })
 
@@ -64,7 +52,7 @@ ctx.bthread("pit - fall", "Pit.All", function (pit) {
         let e = sync({waitFor: AnyActionDone})
         let player = e.data.player
         if (pit.row == player.row && pit.col == player.col)
-            sync({request: Event("Fell in pit")})
+            sync({request: Event("Fell in pit")}, 1000)
     }
 })
 
@@ -73,6 +61,51 @@ ctx.bthread("pit - breeze", "Pit.All", function (pit) {
         let e = sync({waitFor: AnyActionDone})
         let player = e.data.player
         if (near(pit, player))
-            sync({request: Event("Breeze")})
+            sync({request: Event("Breeze")}, 1000)
     }
 })
+
+bthread("Start", function () {
+    sync({request: Event("Start")}, 1000)
+})
+
+///////////////////////////////////////////////////////////
+///////////            strategies            //////////////
+///////////////////////////////////////////////////////////
+
+
+bthread("Grab gold", function() {
+    while (true) {
+        sync({waitFor: Event("Glitter")});
+        sync({request: Event("Play", {id: 'grab'})}, 100)
+    }
+});
+
+ctx.bthread("random player", "Cell.All", function (cell) {
+    while(true) {
+        sync({request: Event("Play", {id: 'forward'})}, 10)
+    }
+})
+
+ctx.bthread("random player", "Cell.All", function (cell) {
+    while(true) {
+        sync({waitFor: Event("Bump")})
+        //TODO smarter turns?
+        sync({request: Event("Play", {id: 'turn-right'})}, 20)
+    }
+})
+
+
+ctx.bthread("leave", "Cell.Opening", function (cell) {
+    while(true) {
+        let e = sync({waitFor: AnyActionDone})
+        let player = e.data.player
+        if (e.data.kb.has_gold && cell.row == player.row && cell.col == player.col)
+            sync({request: Event("Play", {id: 'climb'})}, 90)
+    }
+})
+
+
+
+//TODO stench,breeze
+//TODO when to shoot?
