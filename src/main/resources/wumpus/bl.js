@@ -90,21 +90,23 @@ ctx.bthread("player - bumps - turn", "Cell.All", function (cell) {
     while(true) {
         sync({waitFor: Event("Bump")})
         //TODO smarter turns?
-        sync({request: Event("Play", {id: 'turn-right'})}, 20)
+        sync({request: [Event("Play", {id: 'turn-right'}),
+                             Event("Play", {id: 'turn-left'})]}, 20)
     }
 })
 
 //TODO not good enough. currently it goes in cycles
-ctx.bthread("player - breeze - turn and advance", "Cell.All", function (cell) {
+ctx.bthread("player - breeze/stench - turn and advance", "Cell.All", function (cell) {
     while(true) {
-        sync({waitFor: Event("Breeze")})
+        sync({waitFor: [Event("Breeze"), Event("Stench")]})
         //TODO smarter turns?
-        sync({request: Event("Play", {id: 'turn-right'})}, 20)
-        sync({request: Event("Play", {id: 'turn-right'})}, 20)
-        sync({request: Event("Play", {id: 'forward'})}, 20)
+        sync({request: [Event("Play", {id: 'turn-right'}),
+                             Event("Play", {id: 'turn-left'})]}, 30)
+        sync({request: Event("Play", {id: 'forward'})}, 30)
     }
 })
 
+/*
 ctx.bthread("player - stench - turn and advance", "Cell.All", function (cell) {
     while(true) {
         sync({waitFor: Event("Stench")})
@@ -114,6 +116,7 @@ ctx.bthread("player - stench - turn and advance", "Cell.All", function (cell) {
         sync({request: Event("Play", {id: 'forward'})}, 20)
     }
 })
+ */
 
 ctx.bthread("leave", "Cell.Opening", function (cell) {
     while(true) {
