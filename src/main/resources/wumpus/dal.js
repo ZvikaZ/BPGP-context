@@ -123,8 +123,10 @@ ctx.registerEffect("Play", function (action) {
             arrows.val--
             ctx.updateEntity(arrows)
             if (
-                ((player.facing == 0 || player.facing == 180) && player.col == wumpus.col) ||
-                ((player.facing == 90 || player.facing == 270) && player.row == wumpus.row)
+                (player.facing == 0 && player.col == wumpus.col && player.row < wumpus.row) ||
+                (player.facing == 180 && player.col == wumpus.col && player.row > wumpus.row) ||
+                (player.facing == 90 && player.row == wumpus.row && player.col < wumpus.col) ||
+                (player.facing == 270 && player.row == wumpus.row && player.col > wumpus.col)
             ) {
                 wumpus.status = "dead"
                 ctx.updateEntity(wumpus)
@@ -148,4 +150,9 @@ ctx.registerEffect("Play", function (action) {
 ctx.registerEffect("Wumpus lunch", function (effect) {
     updateScore(-1000);
     gameOver("wumpus lunch")
+})
+
+ctx.registerEffect("Fell in pit", function (effect) {
+    updateScore(-1000);
+    gameOver("fell in pit")
 })
