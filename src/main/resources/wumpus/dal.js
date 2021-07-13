@@ -90,6 +90,7 @@ ctx.registerEffect("Play", function (action) {
     updateScore(-1)
     let player = ctx.getEntityById("player")
     if (action.id.equals("forward")) {
+        //TODO currently ignoring 'bump'. Consider using it.
         if (player.facing == 90 && player.col < COLS)
             player.col++
         if (player.facing == 270 && player.col > 1)
@@ -122,6 +123,7 @@ ctx.registerEffect("Play", function (action) {
         if (arrows.val > 0) {
             arrows.val--
             ctx.updateEntity(arrows)
+            updateScore(-10);
             if (
                 (player.facing == 0 && player.col == wumpus.col && player.row < wumpus.row) ||
                 (player.facing == 180 && player.col == wumpus.col && player.row > wumpus.row) ||
