@@ -16,6 +16,11 @@ const AnyActionDone = bp.EventSet("Action done", function (evt) {
     return evt.name.equals("Action done")
 })
 
+///////////////////////////////////////////////////////////
+///////////            rules                 //////////////
+///////////////////////////////////////////////////////////
+
+
 bthread("EnforceTurns", function() {
     while (true) {
         sync({ waitFor: AnyPlay});
@@ -69,6 +74,49 @@ ctx.bthread("pit - breeze", "Pit.All", function (pit) {
 
 bthread("Start", function () {
     sync({request: Event("Start")}, 1000)
+})
+
+///////////////////////////////////////////////////////////
+///////////            printing              //////////////
+///////////////////////////////////////////////////////////
+
+bthread("boardPrinter", function() {
+    board = []
+    for (var i = 0; i < ROWS; i++) {
+        row = []
+        for (var j = 0; j < COLS; j++) {
+            row.push('_')
+        }
+        board.push(row)
+    }
+
+    while (true) {
+        let e = sync({waitFor: AnyActionDone});
+        let action = e.data.id
+        let x = e.data.player.row - 1
+        let y = e.data.player.col - 1
+        let facing = e.data.player.facing
+        if (facing == 0)
+            board[x][y] = '^'
+        else if (facing == 90)
+            board[x][y] = '>'
+        else if (facing == 180)
+            board[x][y] = 'V'
+        else if (facing == 270)
+            board[x][y] = '<'
+
+        bp.log.info("--------------------")
+        for (var i = ROWS - 1; i >= 0; i--) {
+            bp.log.info(board[i].join(''))
+        }
+        bp.log.info("--------------------")
+
+
+        // for (var i = 0; i < e.data.kb.actions_history.length; i++) {
+        //     action = e.data.kb.actions_history[i]
+        //     bp.log.info(action)
+        // }
+    }
 })
 
 ///////////////////////////////////////////////////////////
