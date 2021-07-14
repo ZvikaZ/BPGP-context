@@ -107,6 +107,9 @@ function gameOver(type) {
 }
 
 ctx.registerEffect("Play", function (action) {
+    let kb = ctx.getEntityById("kb")
+    updateKb(kb, action.id)
+
     updateScore(-1)
     let player = ctx.getEntityById("player")
     if (action.id.equals("forward")) {
@@ -207,15 +210,9 @@ ctx.registerEffect("Took gold", function (effect) {
     ctx.updateEntity(kb)
 })
 
-// ctx.registerEffect("Action done", function (effect) {
-//     if (effect.id != null) {
-//         let kb = ctx.getEntityById("kb")
-//         kb.actions_history.push(effect.id)
-//         bp.log.info(kb)
-//         // ctx.updateEntity(kb)
-//     }
-// })
-//
-
+function updateKb(kb, id) {
+    kb.actions_history.push(id)
+    ctx.updateEntity(kb)
+}
 
 
