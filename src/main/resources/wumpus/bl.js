@@ -110,12 +110,6 @@ bthread("boardPrinter", function() {
             bp.log.info(board[i].join(''))
         }
         bp.log.info("--------------------")
-
-
-        // for (var i = 0; i < e.data.kb.actions_history.length; i++) {
-        //     action = e.data.kb.actions_history[i]
-        //     bp.log.info(action)
-        // }
     }
 })
 
@@ -130,6 +124,17 @@ ctx.bthread("Grab gold", "Gold.Ready", function (gold) {
     }
 });
 
+ctx.bthread("leave", "Cell.Opening", function (cell) {
+    while(true) {
+        let e = sync({waitFor: AnyActionDone})
+        let player = e.data.player
+        if (e.data.kb.has_gold && cell.row == player.row && cell.col == player.col)
+            sync({request: Event("Play", {id: 'climb'})}, 90)
+    }
+})
+
+//TODO when to shoot?
+
 ctx.bthread("player - default", "Cell.All", function (cell) {
     while(true) {
         let e = sync({waitFor: AnyActionDone})
@@ -143,7 +148,7 @@ ctx.bthread("player - bumps - turn", "Cell.All", function (cell) {
         sync({waitFor: Event("Bump")})
         //TODO smarter turns?
         sync({request: [Event("Play", {id: 'turn-right'}),
-                             Event("Play", {id: 'turn-left'})]}, 20)
+                Event("Play", {id: 'turn-left'})]}, 20)
     }
 })
 
@@ -153,32 +158,8 @@ ctx.bthread("player - breeze/stench - turn and advance", "Cell.All", function (c
         sync({waitFor: [Event("Breeze"), Event("Stench")]})
         //TODO smarter turns?
         sync({request: [Event("Play", {id: 'turn-right'}),
-                             Event("Play", {id: 'turn-left'})]}, 30)
+                Event("Play", {id: 'turn-left'})]}, 30)
         sync({request: Event("Play", {id: 'forward'})}, 30)
     }
 })
-
-/*
-ctx.bthread("player - stench - turn and advance", "Cell.All", function (cell) {
-    while(true) {
-        sync({waitFor: Event("Stench")})
-        //TODO smarter turns?
-        sync({request: Event("Play", {id: 'turn-right'})}, 20)
-        sync({request: Event("Play", {id: 'turn-right'})}, 20)
-        sync({request: Event("Play", {id: 'forward'})}, 20)
-    }
-})
- */
-
-ctx.bthread("leave", "Cell.Opening", function (cell) {
-    while(true) {
-        let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
-        if (e.data.kb.has_gold && cell.row == player.row && cell.col == player.col)
-            sync({request: Event("Play", {id: 'climb'})}, 90)
-    }
-})
-
-//TODO when to shoot?
-
 
