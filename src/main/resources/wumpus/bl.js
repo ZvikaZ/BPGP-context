@@ -45,7 +45,11 @@ function playerInCell(e, cell) {
 }
 
 const AnyPlay = bp.EventSet("Play", function (evt) {
-    return evt.name.equals("play")
+    return evt.name.equals("Play")
+})
+
+const AnyPlan = bp.EventSet("Plan", function (evt) {
+    return evt.name.equals("Plan")
 })
 
 const AnyActionDone = bp.EventSet("Action done", function (evt) {
@@ -204,8 +208,17 @@ ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (
         let e = sync({waitFor: AnyActionDone})
         if (near(e.data.player, cell)) {
             let plan = shortPlan(e.data.player, cell)
-            // bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+            bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+            sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
             //TODO: execute plan (and remove previous BTs)
         }
+    }
+})
+
+ctx.bthread("execute plan", "Plan", function (plan) {
+    bp.log.info("execute plan, got: " + plan)
+    for (var i = 0; i < plan.length; i++) {
+        let e = sync({request: Event(plan[i])}, 60)
+        bp.log.info("Executed step #" + i + " of plan: " + plan)
     }
 })

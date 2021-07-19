@@ -199,6 +199,17 @@ ctx.registerEffect("Start", function (effect) {
 ///////////            strategies            //////////////
 ///////////////////////////////////////////////////////////
 
+ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
+    return entity.type.equals("cell") && entity.Breeze == "unknown"
+})
+
+ctx.registerQuery("Plan", function (entity) {
+    return entity.id.equals("plan")
+})
+
+//////////////////
+
+
 ctx.registerEffect("Scream", function (effect) {
     let kb = ctx.getEntityById("kb")
     kb.wumpus = 'dead'
@@ -214,6 +225,12 @@ ctx.registerEffect("Took gold", function (effect) {
 function updateKb(kb, id) {
     kb.actions_history.push(id)
     ctx.updateEntity(kb)
+
+    //TODO remove
+    if (kb.actions_history.length > 100) {
+        bp.log.info("grab bug")
+        exit(1)
+    }
 }
 
 ctx.registerEffect("Breeze", function (effect) {
@@ -235,6 +252,16 @@ function updateDanger(danger, row, col) {
     }
 }
 
-ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
-    return entity.type.equals("cell") && entity.Breeze == "unknown"
+ctx.registerEffect("Plan", function (effect) {
+    bp.log.info("PLAN")
+    bp.log.info(effect.plan)
+    try {
+        let currentPlan = ctx.getEntityById("plan")
+        // bp.log.info("There's an ongoing plan, ignoring new plan " + effect.plan)
+    } catch (err) {
+        bp.log.info("Executing new plan: " + effect.plan)
+        // ctx.insertEntity(ctx.Entity("plan", "", {plan: effect.plan}))
+        ctx.insertEntity(ctx.Entity("plan", "plan", {plan: "wow"}))
+    }
 })
+
