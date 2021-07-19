@@ -46,7 +46,8 @@ for (let i = 1; i <= ROWS; i++)
     for (let j = 1; j <= COLS; j++)
         cells.push(ctx.Entity("cell:" + i + "," + j, "cell",{
             row: i,
-            col: j
+            col: j,
+            Breeze: "unknown"
         }))
 
 
@@ -215,4 +216,25 @@ function updateKb(kb, id) {
     ctx.updateEntity(kb)
 }
 
+ctx.registerEffect("Breeze", function (effect) {
+    let player = ctx.getEntityById("player")
+    // bp.log.info("felt breeze on " + player.row + ":" + player.col)
+    updateDanger("Breeze", player.row + 1, player.col)
+    updateDanger("Breeze", player.row - 1, player.col)
+    updateDanger("Breeze", player.row, player.col + 1)
+    updateDanger("Breeze", player.row, player.col - 1)
+})
 
+function updateDanger(danger, row, col) {
+    if (row >= 1 && row <= ROWS && col >= 1 && col <= COLS) {
+        let cell = ctx.getEntityById("cell:" + row + "," + col)
+        cell[danger] = "possible"
+        ctx.updateEntity(cell)
+        // bp.log.info("updateDanger: " + danger + " " + row + ":" + col)
+        // bp.log.info(cell)
+    }
+}
+
+ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
+    return entity.type.equals("cell") && entity.Breeze == "unknown"
+})

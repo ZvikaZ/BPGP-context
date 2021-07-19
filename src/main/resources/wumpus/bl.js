@@ -3,6 +3,42 @@ function near(a, b) {
             (a.col == b.col && ((a.row == b.row + 1) || (a.row == b.row -1)))
 }
 
+// what should be the direction of a, in order to move forward to b, assuming near(a,b)
+function direction(a, b) {
+    if (a.row < b.row)
+        return 0
+    else if (a.row > b.row)
+        return 180
+    else if (a.col < b.col)
+        return 90
+    else
+        return 270
+}
+
+// return plan from player to b, assuming near(player,b)
+function shortPlan(player, b) {
+    if (!near(player, b))
+        return null
+
+    let delta = direction(player, b) - player.facing
+    if (delta < 0)
+        delta += 360
+    if (delta == 0) {
+        result = []
+    } else if (delta == 90) {
+        result = ['turn-right']
+    } else if (delta == 180) {
+        result = ['turn-right', 'turn-right']
+    } else if (delta == 270) {
+        result = ['turn-left']
+    } else {
+        error()
+    }
+    result.push('forward')
+    return result
+}
+
+
 function playerInCell(e, cell) {
     let player = e.data.player
     return cell.row == player.row && cell.col == player.col
@@ -163,3 +199,13 @@ ctx.bthread("player - breeze/stench - turn and advance", "Cell.All", function (c
     }
 })
 
+ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (cell) {
+    while(true) {
+        let e = sync({waitFor: AnyActionDone})
+        if (near(e.data.player, cell)) {
+            let plan = shortPlan(e.data.player, cell)
+            // bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+            //TODO: execute plan (and remove previous BTs)
+        }
+    }
+})
