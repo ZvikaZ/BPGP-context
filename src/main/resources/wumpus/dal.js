@@ -48,8 +48,10 @@ for (let i = 1; i <= ROWS; i++)
         cells.push(ctx.Entity("cell:" + i + "," + j, "cell",{
             row: i,
             col: j,
-            Breeze: "unknown",
-            Stench: "unknown"
+            Breeze: false,
+            Stench: false,
+            Pit: "unknown",
+            Wumpus: "unknown"
         }))
 
 
@@ -174,6 +176,7 @@ ctx.registerEffect("Play", function (action) {
         bp.log.info("Unrecognized action: " + action.id)
         exit() // 'exit' is undefined - but anyway, it achieves its goal...
     }
+
     sync({request: Event("Action done", {
         id: action.id,
         player: player,
@@ -205,11 +208,15 @@ ctx.registerEffect("Start", function (effect) {
 ///////////////////////////////////////////////////////////
 
 ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
-    return entity.type.equals("cell") && entity.Breeze == "unknown" && entity.Stench == "unknown"
+    return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown"
+})
+
+ctx.registerQuery("Cell.Danger.Clean", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean"
 })
 
 ctx.registerQuery("Cell.Danger.Visited", function (entity) {
-    return entity.type.equals("cell") && entity.Breeze == "visited" && entity.Stench == "visited"
+    return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited"
 })
 
 //////////////////
@@ -227,30 +234,63 @@ ctx.registerEffect("Took gold", function (effect) {
     ctx.updateEntity(kb)
 })
 
+ctx.registerEffect("Breeze", function (effect) {
+    updateIndication("Breeze")
+    updateDangers( "Pit")
+})
+
+ctx.registerEffect("Stench", function (effect) {
+    updateIndication("Stench")
+    updateDangers( "Wumpus")
+})
+
+////////////////////////////////////
+
 function updateKb(kb, id) {
     kb.actions_history.push(id)
     ctx.updateEntity(kb)
-    updateVisited("Breeze")
-    updateVisited("Stench")
+    updateVisited("Pit")
+    updateVisited("Wumpus")
+    updateNoIndications(kb)
 
-    //TODO remove
+    //TODO remove?
     if (kb.actions_history.length > 200) {
-        bp.log.info("stuck in infinite loop, halting")
+        bp.log.info("stuck in infinite loop, exiting")
         exit(1)
     }
 }
 
-ctx.registerEffect("Breeze", function (effect) {
-    // bp.log.info("felt breeze on " + player.row + ":" + player.col)
-    updateDangersAround( "Breeze")
-})
+function updateNoIndications(kb) {
+// ctx.registerEffect("Action done", function (effect) {
+    let player = ctx.getEntityById("player")
+    let cell = ctx.getEntityById("cell:" + player.row + "," + player.col)
+    if (!cell.Breeze) {
+        bp.log.info("No Breeze indication in cell, cleaning its neighbors")
+        bp.log.info(cell)
+        cleanDanger("Pit", player.row + 1, player.col)
+        cleanDanger("Pit", player.row - 1, player.col)
+        cleanDanger("Pit", player.row, player.col + 1)
+        cleanDanger("Pit", player.row, player.col - 1)
+    }
+    if (!cell.Stench) {
+        bp.log.info("No Stench indication in cell, cleaning its neighbors")
+        bp.log.info(cell)
+        cleanDanger("Wumpus", player.row + 1, player.col)
+        cleanDanger("Wumpus", player.row - 1, player.col)
+        cleanDanger("Wumpus", player.row, player.col + 1)
+        cleanDanger("Wumpus", player.row, player.col - 1)
+    }
+}
 
-ctx.registerEffect("Stench", function (effect) {
-    updateDangersAround( "Stench")
-})
 
+function updateIndication(ind) {
+    let player = ctx.getEntityById("player")
+    let cell = ctx.getEntityById("cell:" + player.row + "," + player.col)
+    cell[ind] = true
+    ctx.updateEntity(cell)
+}
 
-function updateDangersAround(danger) {
+function updateDangers(danger) {
     let player = ctx.getEntityById("player")
     updateDanger(danger, player.row + 1, player.col)
     updateDanger(danger, player.row - 1, player.col)
@@ -271,7 +311,7 @@ function updateDanger(danger, row, col) {
         let cell = ctx.getEntityById("cell:" + row + "," + col)
         if (cell[danger] == "unknown") {
             cell[danger] = "possible"
-        } else if (cell[danger] == "visited" || cell[danger] == "possible")  {
+        } else if (cell[danger] == "visited" || cell[danger] == "possible" || cell[danger] == "clean")  {
             // pass
         } else {
             bp.log.info("Unhandled: " + cell[danger])
@@ -279,8 +319,24 @@ function updateDanger(danger, row, col) {
             exit(1)
         }
         ctx.updateEntity(cell)
-        // bp.log.info("updateDanger: " + danger + " " + row + ":" + col)
-        // bp.log.info(cell)
     }
 }
+
+function cleanDanger(danger, row, col) {
+    if (row >= 1 && row <= ROWS && col >= 1 && col <= COLS) {
+        let cell = ctx.getEntityById("cell:" + row + "," + col)
+        if (cell[danger] == "unknown" || cell[danger] == "possible") {
+            cell[danger] = "clean"
+        } else if (cell[danger] == "visited" || cell[danger] == "clean") {
+            // pass
+        } else {
+            bp.log.info("Unhandled: " + cell[danger])
+            bp.log.info(cell)
+            exit(1)
+        }
+        bp.log.info(cell)
+        ctx.updateEntity(cell)
+    }
+}
+
 

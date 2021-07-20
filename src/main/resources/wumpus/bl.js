@@ -112,6 +112,17 @@ ctx.bthread("pit - breeze", "Pit.All", function (pit) {
     }
 })
 
+// // TODO is there a better way?
+// ctx.bthread("no breeze and no stench", "NoPitAndNoWumpus.All", function (pit) {
+//     while (true) {
+//         let e = sync({waitFor: AnyActionDone})
+//         let player = e.data.player
+//         if (near(pit, player))
+//             sync({request: Event("Breeze")}, 1000)
+//     }
+// })
+
+
 bthread("Start", function () {
     sync({request: Event("Start")}, 1000)
 })
@@ -187,11 +198,35 @@ ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (
     }
 })
 
+ctx.bthread("player - clean nearby", "Cell.Danger.Clean", function (cell) {
+    while(true) {
+        let e = sync({waitFor: AnyActionDone})
+        if (near(e.data.player, cell)) {
+            let plan = shortPlan(e.data.player, cell)
+            bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+            sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
+            // bp.log.info("Requested plan: " + plan)
+        }
+    }
+})
+
+// ctx.bthread("player - visited nearby", "Cell.Danger.Visited", function (cell) {
+//     while(true) {
+//         let e = sync({waitFor: AnyActionDone})
+//         if (near(e.data.player, cell)) {
+//             let plan = shortPlan(e.data.player, cell)
+//             bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+//             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
+//             // bp.log.info("Requested plan: " + plan)
+//         }
+//     }
+// })
+
+
+
 ctx.bthread("player - return to visited cell", "Cell.Danger.Visited", function (cell) {
     while(true) {
-        bp.log.info("checking visited waiting " + cell.row + ":" + cell.col)
-        bp.log.info("checking visited got any action done " + cell.row + ":" + cell.col)
-        let player = {row: 1, col: 2, facing: 90}
+        let player = {row: 1, col: 2, facing: 90}   //TODO...
         if (near(player, cell)) {
             let plan = shortPlan(player, cell)
             bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
