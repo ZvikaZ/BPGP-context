@@ -79,6 +79,10 @@ ctx.registerQuery("Gold.Ready", function (entity) {
     return entity.id.equals("kb") && !entity.has_gold
 })
 
+ctx.registerQuery("Gold.Taken", function (entity) {
+    return entity.id.equals("kb") && entity.has_gold
+})
+
 ctx.registerQuery("Game ongoing", function (entity) {
     return entity.id.equals("game ongoing")
 })

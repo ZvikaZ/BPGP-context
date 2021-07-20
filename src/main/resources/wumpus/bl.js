@@ -38,6 +38,20 @@ function shortPlan(player, b) {
     return result
 }
 
+function createReversedPlan(actions_history) {
+    let plan = ['turn-left', 'turn-left']
+    for (let i = actions_history.length; i >= 0; i--) {
+        let action = actions_history[i]
+        if (action == 'turn-right')
+            plan.push('turn-left')
+        else if (action == 'turn-left')
+            plan.push('turn-right')
+        else if (action == 'forward')
+            plan.push('forward')
+    }
+    return plan
+}
+
 
 function playerInCell(e, cell) {
     let player = e.data.player
@@ -173,9 +187,15 @@ ctx.bthread("Grab gold", "Gold.Ready", function (gold) {
         sync({waitFor: Event("Glitter")});
         sync({request: Event("Play", {id: 'grab'})}, 100)
     }
-});
+})
 
-ctx.bthread("leave", "Cell.Opening", function (cell) {
+ctx.bthread("Return to start", "Gold.Taken", function (kb) {
+    //TODO take shortest path, instead of return as we came...
+    let plan = createReversedPlan(kb.actions_history)
+    sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 100)
+})
+
+ctx.bthread("Leave with gold", "Cell.Opening", function (cell) {
     while(true) {
         let e = sync({waitFor: AnyActionDone})
         let player = e.data.player
@@ -193,11 +213,11 @@ ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (
             let plan = shortPlan(e.data.player, cell)
             bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
-            // bp.log.info("Requested plan: " + plan)
         }
     }
 })
 
+//TODO clean/visited - one of them should be probably similar to the other...
 ctx.bthread("player - clean nearby", "Cell.Danger.Clean", function (cell) {
     while(true) {
         let e = sync({waitFor: AnyActionDone})
@@ -205,24 +225,9 @@ ctx.bthread("player - clean nearby", "Cell.Danger.Clean", function (cell) {
             let plan = shortPlan(e.data.player, cell)
             bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
-            // bp.log.info("Requested plan: " + plan)
         }
     }
 })
-
-// ctx.bthread("player - visited nearby", "Cell.Danger.Visited", function (cell) {
-//     while(true) {
-//         let e = sync({waitFor: AnyActionDone})
-//         if (near(e.data.player, cell)) {
-//             let plan = shortPlan(e.data.player, cell)
-//             bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
-//             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
-//             // bp.log.info("Requested plan: " + plan)
-//         }
-//     }
-// })
-
-
 
 ctx.bthread("player - return to visited cell", "Cell.Danger.Visited", function (cell) {
     while(true) {
