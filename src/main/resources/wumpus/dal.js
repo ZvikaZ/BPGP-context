@@ -41,7 +41,6 @@ let kb = ctx.Entity("kb", "", {
     actions_history: []
 })
 
-let plan = ctx.Entity("plan", "", {plan: null})
 
 let cells = []
 for (let i = 1; i <= ROWS; i++)
@@ -54,7 +53,7 @@ for (let i = 1; i <= ROWS; i++)
 
 
 ctx.populateContext(pits.concat(cells).concat(
-    [gameOngoing, score, arrows, wumpus, gold, player, kb, plan]))
+    [gameOngoing, score, arrows, wumpus, gold, player, kb]))
 
 
 ///////////////////////////////////////////////
@@ -208,10 +207,6 @@ ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
     return entity.type.equals("cell") && entity.Breeze == "unknown"
 })
 
-ctx.registerQuery("Plan", function (entity) {
-    return entity.id.equals("plan")
-})
-
 //////////////////
 
 
@@ -238,6 +233,8 @@ function updateKb(kb, id) {
     }
 }
 
+//TODO stench
+//TODO update 'safe' if visited
 ctx.registerEffect("Breeze", function (effect) {
     let player = ctx.getEntityById("player")
     // bp.log.info("felt breeze on " + player.row + ":" + player.col)
@@ -256,17 +253,4 @@ function updateDanger(danger, row, col) {
         // bp.log.info(cell)
     }
 }
-
-ctx.registerEffect("Plan", function (effect) {
-    bp.log.info("PLAN")
-    bp.log.info(effect.plan)
-    let currentPlan = ctx.getEntityById("plan")
-    if (currentPlan.plan != null) {
-        bp.log.info("There's an ongoing plan (" + currentPlan.plan + "), ignoring new plan: " + effect.plan)
-    } else {
-        bp.log.info("Executing new plan: " + effect.plan)
-        currentPlan.plan = effect.plan
-        ctx.updateEntity(currentPlan)
-    }
-})
 

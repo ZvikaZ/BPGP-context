@@ -61,12 +61,12 @@ const AnyActionDone = bp.EventSet("Action done", function (evt) {
 ///////////////////////////////////////////////////////////
 
 
-bthread("EnforceTurns", function() {
-    while (true) {
-        sync({ waitFor: AnyPlay});
-        sync({ waitFor: AnyActionDone, block: [AnyPlay]})
-    }
-});
+// bthread("EnforceTurns", function() {
+//     while (true) {
+//         sync({ waitFor: AnyPlay});
+//         sync({ waitFor: AnyActionDone, block: [AnyPlay]})
+//     }
+// });
 
 
 ctx.bthread("wumpus - eat", "Wumpus.Alive", function (wumpus) {
@@ -175,33 +175,13 @@ ctx.bthread("leave", "Cell.Opening", function (cell) {
 
 //TODO when to shoot?
 
-ctx.bthread("player - default", "Cell.All", function (cell) {
-    while(true) {
-        let e = sync({waitFor: AnyActionDone})
-        if (playerInCell(e, cell))
-            sync({request: Event("Play", {id: 'forward'})}, 10)
-    }
-})
-
-ctx.bthread("player - bumps - turn", "Cell.All", function (cell) {
-    while(true) {
-        sync({waitFor: Event("Bump")})
-        //TODO smarter turns?
-        sync({request: [Event("Play", {id: 'turn-right'}),
-                Event("Play", {id: 'turn-left'})]}, 20)
-    }
-})
-
-//TODO not good enough. currently it goes in cycles
-ctx.bthread("player - breeze/stench - turn and advance", "Cell.All", function (cell) {
-    while(true) {
-        sync({waitFor: [Event("Breeze"), Event("Stench")]})
-        //TODO smarter turns?
-        sync({request: [Event("Play", {id: 'turn-right'}),
-                Event("Play", {id: 'turn-left'})]}, 30)
-        sync({request: Event("Play", {id: 'forward'})}, 30)
-    }
-})
+// ctx.bthread("player - default", "Cell.All", function (cell) {
+//     while(true) {
+//         let e = sync({waitFor: AnyActionDone})
+//         if (playerInCell(e, cell))
+//             sync({request: Event("Play", {id: 'forward'})}, 10)
+//     }
+// })
 
 ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (cell) {
     while(true) {
@@ -210,15 +190,22 @@ ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (
             let plan = shortPlan(e.data.player, cell)
             bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
-            //TODO: execute plan (and remove previous BTs)
+            // bp.log.info("Requested plan: " + plan)
         }
     }
 })
 
-ctx.bthread("execute plan", "Plan", function (plan) {
-    bp.log.info("execute plan, got: " + plan)
-    for (var i = 0; i < plan.length; i++) {
-        let e = sync({request: Event(plan[i])}, 60)
-        bp.log.info("Executed step #" + i + " of plan: " + plan)
+bthread("execute plan", function() {
+    while (true) {
+        let e = sync({waitFor: AnyPlan})
+        let plan = e.data.plan
+        bp.log.info("execute plan, got: " + plan)
+        for (var i = 0; i < plan.length; i++) {
+            let e = sync({request: Event("Play", {id: plan[i]})}, 60)
+            bp.log.info("Executed step #" + i + " of plan: " + plan)
+            bp.log.info(e)
+        }
+        bp.log.info("Finished executing plan: " + plan)
     }
 })
+
