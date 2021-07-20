@@ -204,7 +204,7 @@ ctx.registerEffect("Start", function (effect) {
 ///////////////////////////////////////////////////////////
 
 ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
-    return entity.type.equals("cell") && entity.Breeze == "unknown"
+    return entity.type.equals("cell") && entity.Breeze != "possible"
 })
 
 //////////////////
@@ -225,6 +225,8 @@ ctx.registerEffect("Took gold", function (effect) {
 function updateKb(kb, id) {
     kb.actions_history.push(id)
     ctx.updateEntity(kb)
+    updateSafe("Breeze")
+    //TODO stench
 
     //TODO remove
     if (kb.actions_history.length > 100) {
@@ -244,10 +246,25 @@ ctx.registerEffect("Breeze", function (effect) {
     updateDanger("Breeze", player.row, player.col - 1)
 })
 
+function updateSafe(danger) {
+    let player = ctx.getEntityById("player")
+    let cell = ctx.getEntityById("cell:" + player.row + "," + player.col)
+    cell[danger] = "safe"
+    ctx.updateEntity(cell)
+}
+
 function updateDanger(danger, row, col) {
     if (row >= 1 && row <= ROWS && col >= 1 && col <= COLS) {
         let cell = ctx.getEntityById("cell:" + row + "," + col)
-        cell[danger] = "possible"
+        if (cell[danger] == "unknown") {
+            cell[danger] = "possible"
+        } else if (cell[danger] == "safe" || cell[danger] == "possible")  {
+            // pass
+        } else {
+            bp.log.info("Unhandled: " + cell[danger])
+            bp.log.info(cell)
+            exit(1)
+        }
         ctx.updateEntity(cell)
         // bp.log.info("updateDanger: " + danger + " " + row + ":" + col)
         // bp.log.info(cell)
