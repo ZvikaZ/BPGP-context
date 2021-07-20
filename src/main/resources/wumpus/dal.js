@@ -48,7 +48,8 @@ for (let i = 1; i <= ROWS; i++)
         cells.push(ctx.Entity("cell:" + i + "," + j, "cell",{
             row: i,
             col: j,
-            Breeze: "unknown"
+            Breeze: "unknown",
+            Stench: "unknown"
         }))
 
 
@@ -204,7 +205,11 @@ ctx.registerEffect("Start", function (effect) {
 ///////////////////////////////////////////////////////////
 
 ctx.registerQuery("Cell.Danger.Unknown", function (entity) {
-    return entity.type.equals("cell") && entity.Breeze != "possible"
+    return entity.type.equals("cell") && entity.Breeze == "unknown" && entity.Stench == "unknown"
+})
+
+ctx.registerQuery("Cell.Danger.Visited", function (entity) {
+    return entity.type.equals("cell") && entity.Breeze == "visited" && entity.Stench == "visited"
 })
 
 //////////////////
@@ -225,31 +230,39 @@ ctx.registerEffect("Took gold", function (effect) {
 function updateKb(kb, id) {
     kb.actions_history.push(id)
     ctx.updateEntity(kb)
-    updateSafe("Breeze")
-    //TODO stench
+    updateVisited("Breeze")
+    updateVisited("Stench")
 
     //TODO remove
-    if (kb.actions_history.length > 100) {
-        bp.log.info("grab bug")
+    if (kb.actions_history.length > 200) {
+        bp.log.info("stuck in infinite loop, halting")
         exit(1)
     }
 }
 
-//TODO stench
-//TODO update 'safe' if visited
 ctx.registerEffect("Breeze", function (effect) {
-    let player = ctx.getEntityById("player")
     // bp.log.info("felt breeze on " + player.row + ":" + player.col)
-    updateDanger("Breeze", player.row + 1, player.col)
-    updateDanger("Breeze", player.row - 1, player.col)
-    updateDanger("Breeze", player.row, player.col + 1)
-    updateDanger("Breeze", player.row, player.col - 1)
+    updateDangersAround( "Breeze")
 })
 
-function updateSafe(danger) {
+ctx.registerEffect("Stench", function (effect) {
+    updateDangersAround( "Stench")
+})
+
+
+function updateDangersAround(danger) {
+    let player = ctx.getEntityById("player")
+    updateDanger(danger, player.row + 1, player.col)
+    updateDanger(danger, player.row - 1, player.col)
+    updateDanger(danger, player.row, player.col + 1)
+    updateDanger(danger, player.row, player.col - 1)
+}
+
+//TODO update other safe cells
+function updateVisited(danger) {
     let player = ctx.getEntityById("player")
     let cell = ctx.getEntityById("cell:" + player.row + "," + player.col)
-    cell[danger] = "safe"
+    cell[danger] = "visited"
     ctx.updateEntity(cell)
 }
 
@@ -258,7 +271,7 @@ function updateDanger(danger, row, col) {
         let cell = ctx.getEntityById("cell:" + row + "," + col)
         if (cell[danger] == "unknown") {
             cell[danger] = "possible"
-        } else if (cell[danger] == "safe" || cell[danger] == "possible")  {
+        } else if (cell[danger] == "visited" || cell[danger] == "possible")  {
             // pass
         } else {
             bp.log.info("Unhandled: " + cell[danger])

@@ -175,23 +175,31 @@ ctx.bthread("leave", "Cell.Opening", function (cell) {
 
 //TODO when to shoot?
 
-// ctx.bthread("player - default", "Cell.All", function (cell) {
-//     while(true) {
-//         let e = sync({waitFor: AnyActionDone})
-//         if (playerInCell(e, cell))
-//             sync({request: Event("Play", {id: 'forward'})}, 10)
-//     }
-// })
-
 ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (cell) {
     while(true) {
         let e = sync({waitFor: AnyActionDone})
         if (near(e.data.player, cell)) {
             let plan = shortPlan(e.data.player, cell)
             bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+            sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
+            // bp.log.info("Requested plan: " + plan)
+        }
+    }
+})
+
+ctx.bthread("player - return to visited cell", "Cell.Danger.Visited", function (cell) {
+    while(true) {
+        bp.log.info("checking visited waiting " + cell.row + ":" + cell.col)
+        bp.log.info("checking visited got any action done " + cell.row + ":" + cell.col)
+        let player = {row: 1, col: 2, facing: 90}
+        if (near(player, cell)) {
+            let plan = shortPlan(player, cell)
+            bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
             // bp.log.info("Requested plan: " + plan)
         }
+        let e = sync({waitFor: AnyActionDone})
+        player = e.data.player
     }
 })
 
@@ -201,7 +209,7 @@ bthread("execute plan", function() {
         let plan = e.data.plan
         bp.log.info("execute plan, got: " + plan)
         for (var i = 0; i < plan.length; i++) {
-            let e = sync({request: Event("Play", {id: plan[i]})}, 60)
+            let e = sync({request: Event("Play", {id: plan[i]})}, 40)
             bp.log.info("Executed step #" + i + " of plan: " + plan)
             bp.log.info(e)
         }
