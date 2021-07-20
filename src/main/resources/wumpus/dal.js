@@ -41,6 +41,8 @@ let kb = ctx.Entity("kb", "", {
     actions_history: []
 })
 
+let plan = ctx.Entity("plan", "", {plan: null})
+
 let cells = []
 for (let i = 1; i <= ROWS; i++)
     for (let j = 1; j <= COLS; j++)
@@ -52,7 +54,10 @@ for (let i = 1; i <= ROWS; i++)
 
 
 ctx.populateContext(pits.concat(cells).concat(
-    [gameOngoing, score, arrows, wumpus, gold, player, kb]))
+    [gameOngoing, score, arrows, wumpus, gold, player, kb, plan]))
+
+
+///////////////////////////////////////////////
 
 
 
@@ -255,13 +260,13 @@ function updateDanger(danger, row, col) {
 ctx.registerEffect("Plan", function (effect) {
     bp.log.info("PLAN")
     bp.log.info(effect.plan)
-    try {
-        let currentPlan = ctx.getEntityById("plan")
-        // bp.log.info("There's an ongoing plan, ignoring new plan " + effect.plan)
-    } catch (err) {
+    let currentPlan = ctx.getEntityById("plan")
+    if (currentPlan.plan != null) {
+        bp.log.info("There's an ongoing plan (" + currentPlan.plan + "), ignoring new plan: " + effect.plan)
+    } else {
         bp.log.info("Executing new plan: " + effect.plan)
-        // ctx.insertEntity(ctx.Entity("plan", "", {plan: effect.plan}))
-        ctx.insertEntity(ctx.Entity("plan", "plan", {plan: "wow"}))
+        currentPlan.plan = effect.plan
+        ctx.updateEntity(currentPlan)
     }
 })
 
