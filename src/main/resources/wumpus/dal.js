@@ -1,5 +1,3 @@
-//TODO draw board
-
 const ROWS = 4
 const COLS = 4
 
@@ -184,12 +182,6 @@ ctx.registerEffect("Play", function (action) {
         bp.log.info("Unrecognized action: " + action.id)
         exit() // 'exit' is undefined - but anyway, it achieves its goal...
     }
-
-    sync({request: Event("Action done", {
-        id: action.id,
-        player: player,
-        kb: kb
-    })}, 2000)
 })
 
 ctx.registerEffect("Wumpus lunch", function (effect) {
@@ -202,14 +194,6 @@ ctx.registerEffect("Fell in pit", function (effect) {
     gameOver("fell in pit")
 })
 
-// TODO is there a better solution?
-ctx.registerEffect("Start", function (effect) {
-    sync({request: Event("Action done", {
-        id: null,
-        player: ctx.getEntityById("player"),
-        kb: ctx.getEntityById("kb"),
-    })}, 2000)
-})
 
 ///////////////////////////////////////////////////////////
 ///////////            strategies            //////////////
@@ -263,7 +247,6 @@ function updateKb(kb, id) {
 }
 
 function updateNoIndications(kb) {
-// ctx.registerEffect("Action done", function (effect) {
     let player = ctx.getEntityById("player")
     let cell = ctx.getEntityById("cell:" + player.row + "," + player.col)
     if (!cell.Breeze) {

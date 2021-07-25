@@ -53,8 +53,7 @@ function createReversedPlan(actions_history) {
 }
 
 
-function playerInCell(e, cell) {
-    let player = e.data.player
+function playerInCell(player, cell) {
     return cell.row == player.row && cell.col == player.col
 }
 
@@ -66,38 +65,27 @@ const AnyPlan = bp.EventSet("Plan", function (evt) {
     return evt.name.equals("Plan")
 })
 
-const AnyActionDone = bp.EventSet("Action done", function (evt) {
-    return evt.name.equals("Action done")
-})
 
 ///////////////////////////////////////////////////////////
 ///////////            rules                 //////////////
 ///////////////////////////////////////////////////////////
 
 
-// bthread("EnforceTurns", function() {
-//     while (true) {
-//         sync({ waitFor: AnyPlay});
-//         sync({ waitFor: AnyActionDone, block: [AnyPlay]})
-//     }
-// });
-
-
 ctx.bthread("wumpus - eat", "Wumpus.Alive", function (wumpus) {
     while (true) {
-        let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
+        let player = ctx.getEntityById("player")
         if (wumpus.row == player.row && wumpus.col == player.col)
             sync({request: Event("Wumpus lunch")}, 1000)
+        sync({waitFor: AnyPlay})
     }
 })
 
 ctx.bthread("wumpus - smell", "Wumpus.Alive", function (wumpus) {
     while (true) {
-        let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
+        let player = ctx.getEntityById("player")
         if (near(wumpus, player))
             sync({request: Event("Stench")}, 1000)
+        sync({waitFor: AnyPlay})
     }
 })
 
@@ -107,43 +95,41 @@ ctx.bthread("wumpus - scream", "Wumpus.Dead", function (wumpus) {
 
 ctx.bthread("gold - glitter", "Cell.Gold", function (gold) {
     while (true) {
-        let e = sync({waitFor: AnyActionDone})
-        if (playerInCell(e, gold))
+        let player = ctx.getEntityById("player")
+        if (playerInCell(player, gold))
             sync({request: Event("Glitter")}, 1000)
+        sync({waitFor: AnyPlay})
     }
 })
 
 ctx.bthread("pit - fall", "Pit.All", function (pit) {
     while (true) {
-        let e = sync({waitFor: AnyActionDone})
-        if (playerInCell(e, pit))
+        let player = ctx.getEntityById("player")
+        if (playerInCell(player, pit))
             sync({request: Event("Fell in pit")}, 1000)
+        sync({waitFor: AnyPlay})
     }
 })
 
 ctx.bthread("pit - breeze", "Pit.All", function (pit) {
     while (true) {
-        let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
+        let player = ctx.getEntityById("player")
         if (near(pit, player))
             sync({request: Event("Breeze")}, 1000)
+        sync({waitFor: AnyPlay})
     }
 })
 
 // // TODO is there a better way?
 // ctx.bthread("no breeze and no stench", "NoPitAndNoWumpus.All", function (pit) {
 //     while (true) {
-//         let e = sync({waitFor: AnyActionDone})
-//         let player = e.data.player
+//         let player = ctx.getEntityById("player")
 //         if (near(pit, player))
 //             sync({request: Event("Breeze")}, 1000)
+//         sync({waitFor: AnyPlay})
 //     }
 // })
 
-
-bthread("Start", function () {
-    sync({request: Event("Start")}, 1000)
-})
 
 ctx.bthread("Game over", "Game over", function (entity) {
     bp.log.info("Game over: " + entity.type + ", score: " + entity.score)
@@ -166,11 +152,11 @@ bthread("boardPrinter", function() {
     }
 
     while (true) {
-        let e = sync({waitFor: AnyActionDone});
-        let action = e.data.id
-        let x = e.data.player.row - 1
-        let y = e.data.player.col - 1
-        let facing = e.data.player.facing
+        let e = sync({waitFor: AnyPlay});
+        let player = ctx.getEntityById("player")
+        let x = player.row - 1
+        let y = player.col - 1
+        let facing = player.facing
         if (facing == 0)
             board[x][y] = '^'
         else if (facing == 90)
@@ -207,10 +193,11 @@ ctx.bthread("Return to start", "Gold.Taken", function (kb) {
 
 ctx.bthread("Leave with gold", "Cell.Opening", function (cell) {
     while(true) {
-        let e = sync({waitFor: AnyActionDone})
-        let player = e.data.player
-        if (e.data.kb.has_gold && cell.row == player.row && cell.col == player.col)
+        let player = ctx.getEntityById("player")
+        let kb = ctx.getEntityById("kb")
+        if (kb.has_gold && cell.row == player.row && cell.col == player.col)
             sync({request: Event("Play", {id: 'climb'})}, 90)
+        sync({waitFor: AnyPlay})
     }
 })
 
@@ -218,38 +205,39 @@ ctx.bthread("Leave with gold", "Cell.Opening", function (cell) {
 
 ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (cell) {
     while(true) {
-        let e = sync({waitFor: AnyActionDone})
-        if (near(e.data.player, cell)) {
-            let plan = shortPlan(e.data.player, cell)
-            bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+        let player = ctx.getEntityById("player")
+        if (near(player, cell)) {
+            let plan = shortPlan(player, cell)
+            bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
         }
+        sync({waitFor: AnyPlay})
     }
 })
 
 //TODO clean/visited - one of them should be probably similar to the other...
 ctx.bthread("player - clean nearby", "Cell.Danger.Clean", function (cell) {
     while(true) {
-        let e = sync({waitFor: AnyActionDone})
-        if (near(e.data.player, cell)) {
-            let plan = shortPlan(e.data.player, cell)
-            bp.log.info(e.data.player.row + ":" + e.data.player.col + "," + e.data.player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(e.data.player, cell) + ". plan: " + plan)
+        let player = ctx.getEntityById("player")
+        if (near(player, cell)) {
+            let plan = shortPlan(player, cell)
+            bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
         }
+        sync({waitFor: AnyPlay})
     }
 })
 
 ctx.bthread("player - return to visited cell", "Cell.Danger.Visited", function (cell) {
     while(true) {
-        let player = {row: 1, col: 2, facing: 90}   //TODO...
+        let player = ctx.getEntityById("player")
         if (near(player, cell)) {
             let plan = shortPlan(player, cell)
             bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
             // bp.log.info("Requested plan: " + plan)
         }
-        let e = sync({waitFor: AnyActionDone})
-        player = e.data.player
+        sync({waitFor: AnyPlay})
     }
 })
 
