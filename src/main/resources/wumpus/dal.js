@@ -113,8 +113,6 @@ function gameOver(type) {
     let score = ctx.getEntityById("score")
     ctx.removeEntity(ctx.Entity("game ongoing"))
     ctx.insertEntity(ctx.Entity("game over", type, {score: score.val}))
-    bp.log.info("Game over: " + type + ", score: " + score.val)
-    sync({block: bp.eventSets.all})
 
 }
 

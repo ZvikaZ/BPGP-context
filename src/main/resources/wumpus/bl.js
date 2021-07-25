@@ -141,6 +141,12 @@ bthread("Start", function () {
     sync({request: Event("Start")}, 1000)
 })
 
+ctx.bthread("Game over", "Game over", function (entity) {
+    bp.log.info("Game over: " + entity.type + ", score: " + entity.score)
+    sync({block: bp.eventSets.all})
+})
+
+
 ///////////////////////////////////////////////////////////
 ///////////            printing              //////////////
 ///////////////////////////////////////////////////////////
