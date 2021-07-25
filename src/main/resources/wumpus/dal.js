@@ -67,6 +67,10 @@ ctx.registerQuery("Wumpus.Alive", function (entity) {
     return entity.id.equals("wumpus") && entity.status.equals("alive")
 })
 
+ctx.registerQuery("Wumpus.Dead", function (entity) {
+    return entity.id.equals("wumpus") && entity.status.equals("dead")
+})
+
 ctx.registerQuery("Pit.All", function (entity) {
     return entity.type.equals("pit")
 })
@@ -103,6 +107,10 @@ ctx.registerQuery("Cell.Opening", function (entity) {
     return entity.id.equals("cell:1,1")
 })
 
+
+///////////////////////////////////////////////
+
+
 function updateScore(delta) {
     let score = ctx.getEntityById("score")
     score.val += delta
@@ -131,8 +139,7 @@ ctx.registerEffect("Play", function (action) {
             player.row++
         else if (player.facing == 180 && player.row > 1)
             player.row--
-        else
-            sync({request: Event("Bump")}, 1000)
+        // if needed, we can add an 'else ... trigger bump'
         ctx.updateEntity(player)
     } else if (action.id.equals("turn-right")) {
         player.facing += 90
@@ -150,7 +157,7 @@ ctx.registerEffect("Play", function (action) {
             gold.status = "taken"
             ctx.updateEntity(gold)
             updateScore(1000);
-            sync({request: Event("Took gold")}, 1000)
+            updateGoldTaken()
         }
     } else if (action.id.equals("shoot")) {
         let arrows = ctx.getEntityById("arrows")
@@ -167,7 +174,6 @@ ctx.registerEffect("Play", function (action) {
             ) {
                 wumpus.status = "dead"
                 ctx.updateEntity(wumpus)
-                sync({request: Event("Scream")}, 1000)
             }
         }
     } else if (action.id.equals("climb")) {
@@ -227,12 +233,6 @@ ctx.registerQuery("Cell.Danger.Visited", function (entity) {
 ctx.registerEffect("Scream", function (effect) {
     let kb = ctx.getEntityById("kb")
     kb.wumpus = 'dead'
-    ctx.updateEntity(kb)
-})
-
-ctx.registerEffect("Took gold", function (effect) {
-    let kb = ctx.getEntityById("kb")
-    kb.has_gold = true
     ctx.updateEntity(kb)
 })
 
@@ -341,4 +341,9 @@ function cleanDanger(danger, row, col) {
     }
 }
 
+function updateGoldTaken() {
+    let kb = ctx.getEntityById("kb")
+    kb.has_gold = true
+    ctx.updateEntity(kb)
+}
 

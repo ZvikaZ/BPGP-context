@@ -101,6 +101,10 @@ ctx.bthread("wumpus - smell", "Wumpus.Alive", function (wumpus) {
     }
 })
 
+ctx.bthread("wumpus - scream", "Wumpus.Dead", function (wumpus) {
+    sync({request: Event("Scream")}, 1000)
+})
+
 ctx.bthread("gold - glitter", "Cell.Gold", function (gold) {
     while (true) {
         let e = sync({waitFor: AnyActionDone})
