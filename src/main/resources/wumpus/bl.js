@@ -23,14 +23,16 @@ function shortPlan(player, b) {
     let delta = direction(player, b) - player.facing
     if (delta < 0)
         delta += 360
+    let result = []
     if (delta == 0) {
-        result = []
+        // pass
     } else if (delta == 90) {
-        result = ['turn-right']
+        result.push('turn-right')
     } else if (delta == 180) {
-        result = ['turn-right', 'turn-right']
+        result.push('turn-right')
+        result.push('turn-right')
     } else if (delta == 270) {
-        result = ['turn-left']
+        result.push('turn-left')
     } else {
         error()
     }
@@ -120,17 +122,6 @@ ctx.bthread("pit - breeze", "Pit.All", function (pit) {
     }
 })
 
-// // TODO is there a better way?
-// ctx.bthread("no breeze and no stench", "NoPitAndNoWumpus.All", function (pit) {
-//     while (true) {
-//         let player = ctx.getEntityById("player")
-//         if (near(pit, player))
-//             sync({request: Event("Breeze")}, 1000)
-//         sync({waitFor: AnyPlay})
-//     }
-// })
-
-
 ctx.bthread("Game over", "Game over", function (entity) {
     bp.log.info("Game over: " + entity.type + ", score: " + entity.score)
     sync({block: bp.eventSets.all})
@@ -142,9 +133,9 @@ ctx.bthread("Game over", "Game over", function (entity) {
 ///////////////////////////////////////////////////////////
 
 bthread("boardPrinter", function() {
-    board = []
+    let board = []
     for (var i = 0; i < ROWS; i++) {
-        row = []
+        let row = []
         for (var j = 0; j < COLS; j++) {
             row.push('_')
         }
@@ -152,7 +143,7 @@ bthread("boardPrinter", function() {
     }
 
     while (true) {
-        let e = sync({waitFor: AnyPlay});
+        sync({waitFor: AnyPlay});
         let player = ctx.getEntityById("player")
         let x = player.row - 1
         let y = player.col - 1
