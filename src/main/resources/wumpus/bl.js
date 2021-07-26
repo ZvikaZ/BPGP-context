@@ -79,6 +79,7 @@ ctx.bthread("wumpus - eat", "Wumpus.Alive", function (wumpus) {
         if (wumpus.row == player.row && wumpus.col == player.col)
             sync({request: Event("Wumpus lunch")}, 1000)
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -88,6 +89,7 @@ ctx.bthread("wumpus - smell", "Wumpus.Alive", function (wumpus) {
         if (near(wumpus, player))
             sync({request: Event("Stench")}, 1000)
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -101,6 +103,7 @@ ctx.bthread("gold - glitter", "Cell.Gold", function (gold) {
         if (playerInCell(player, gold))
             sync({request: Event("Glitter")}, 1000)
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -110,6 +113,7 @@ ctx.bthread("pit - fall", "Pit.All", function (pit) {
         if (playerInCell(player, pit))
             sync({request: Event("Fell in pit")}, 1000)
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -119,6 +123,7 @@ ctx.bthread("pit - breeze", "Pit.All", function (pit) {
         if (near(pit, player))
             sync({request: Event("Breeze")}, 1000)
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -143,7 +148,6 @@ bthread("boardPrinter", function() {
     }
 
     while (true) {
-        sync({waitFor: AnyPlay});
         let player = ctx.getEntityById("player")
         let x = player.row - 1
         let y = player.col - 1
@@ -162,6 +166,8 @@ bthread("boardPrinter", function() {
             bp.log.info(board[i].join(''))
         }
         bp.log.info("--------------------")
+        sync({waitFor: AnyPlay});
+        waitForEffectUpdate();
     }
 })
 
@@ -172,7 +178,8 @@ bthread("boardPrinter", function() {
 ctx.bthread("Grab gold", "Gold.Ready", function (gold) {
     while (true) {
         sync({waitFor: Event("Glitter")});
-        sync({request: Event("Play", {id: 'grab'})}, 100)
+        sync({request: Event("Play", {id: 'grab'})}, 110)
+        waitForEffectUpdate();
     }
 })
 
@@ -189,6 +196,7 @@ ctx.bthread("Leave with gold", "Cell.Opening", function (cell) {
         if (kb.has_gold && cell.row == player.row && cell.col == player.col)
             sync({request: Event("Play", {id: 'climb'})}, 90)
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -203,10 +211,10 @@ ctx.bthread("player - no known danger nearby", "Cell.Danger.Unknown", function (
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
         }
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
-//TODO clean/visited - one of them should be probably similar to the other...
 ctx.bthread("player - clean nearby", "Cell.Danger.Clean", function (cell) {
     while(true) {
         let player = ctx.getEntityById("player")
@@ -216,6 +224,7 @@ ctx.bthread("player - clean nearby", "Cell.Danger.Clean", function (cell) {
             sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
         }
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -229,6 +238,7 @@ ctx.bthread("player - return to visited cell", "Cell.Danger.Visited", function (
             // bp.log.info("Requested plan: " + plan)
         }
         sync({waitFor: AnyPlay})
+        waitForEffectUpdate();
     }
 })
 
@@ -238,11 +248,17 @@ bthread("execute plan", function() {
         let plan = e.data.plan
         bp.log.info("execute plan, got: " + plan)
         for (var i = 0; i < plan.length; i++) {
-            let e = sync({request: Event("Play", {id: plan[i]})}, 40)
+            sync({request: Event("Play", {id: plan[i]})}, 140)
+            waitForEffectUpdate();
             bp.log.info("Executed step #" + i + " of plan: " + plan)
             bp.log.info(e)
         }
-        bp.log.info("Finished executing plan: " + plan)
+        let player = ctx.getEntityById("player")
+        bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
     }
 })
 
+// can be removed after CoBP will fix read/write lock
+function waitForEffectUpdate() {
+    sync({request: Event("Dummy")}, 10000)
+}

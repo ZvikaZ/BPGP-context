@@ -1,3 +1,6 @@
+// cell {id, i,j, has:[pit/wumpus/gold],hasplayer=false, probpit, probwumpus,probgold}
+
+
 const ROWS = 4
 const COLS = 4
 
@@ -93,10 +96,6 @@ ctx.registerQuery("Game over", function (entity) {
     return entity.id.equals("game over")
 })
 
-ctx.registerQuery("Player", function (entity) {
-    return entity.id.equals("player")
-})
-
 ctx.registerQuery("Cell.All", function (entity) {
     return entity.type.equals("cell")
 })
@@ -124,10 +123,12 @@ function gameOver(type) {
 
 ctx.registerEffect("Play", function (action) {
     let kb = ctx.getEntityById("kb")
-    updateKb(kb, action.id)
 
     updateScore(-1)
     let player = ctx.getEntityById("player")
+
+    // bp.log.info("registerEffect start: Play: " + action.id + ". player on " + player.row + ":" + player.col + ", facing: " + player.facing)
+
     if (action.id.equals("forward")) {
         if (player.facing == 90 && player.col < COLS)
             player.col++
@@ -182,6 +183,11 @@ ctx.registerEffect("Play", function (action) {
         bp.log.info("Unrecognized action: " + action.id)
         exit() // 'exit' is undefined - but anyway, it achieves its goal...
     }
+
+    updateKb(kb, action.id)
+
+    // player = ctx.getEntityById("player")
+    // bp.log.info("registerEffect end: Play: " + action.id + ". player on " + player.row + ":" + player.col + ", facing: " + player.facing)
 })
 
 ctx.registerEffect("Wumpus lunch", function (effect) {
@@ -250,16 +256,16 @@ function updateNoIndications(kb) {
     let player = ctx.getEntityById("player")
     let cell = ctx.getEntityById("cell:" + player.row + "," + player.col)
     if (!cell.Breeze) {
-        bp.log.info("No Breeze indication in cell, cleaning its neighbors")
-        bp.log.info(cell)
+        bp.log.info("No Breeze indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
+        // bp.log.info(cell)
         cleanDanger("Pit", player.row + 1, player.col)
         cleanDanger("Pit", player.row - 1, player.col)
         cleanDanger("Pit", player.row, player.col + 1)
         cleanDanger("Pit", player.row, player.col - 1)
     }
     if (!cell.Stench) {
-        bp.log.info("No Stench indication in cell, cleaning its neighbors")
-        bp.log.info(cell)
+        bp.log.info("No Stench indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
+        // bp.log.info(cell)
         cleanDanger("Wumpus", player.row + 1, player.col)
         cleanDanger("Wumpus", player.row - 1, player.col)
         cleanDanger("Wumpus", player.row, player.col + 1)
@@ -319,7 +325,7 @@ function cleanDanger(danger, row, col) {
             bp.log.info(cell)
             exit(1)
         }
-        bp.log.info(cell)
+        // bp.log.info(cell)
         ctx.updateEntity(cell)
     }
 }
