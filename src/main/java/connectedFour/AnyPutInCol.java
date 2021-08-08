@@ -5,6 +5,7 @@ import il.ac.bgu.cs.bp.bpjs.model.BEvent;
 import il.ac.bgu.cs.bp.bpjs.model.eventsets.EventSet;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class AnyPutInCol implements EventSet {
     private final int col;
@@ -20,13 +21,14 @@ public class AnyPutInCol implements EventSet {
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hashCode(col);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(! (obj instanceof AnyPutInCol)) return false;
-        AnyPutInCol o = (AnyPutInCol) obj;
-        return o.col == col;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AnyPutInCol that = (AnyPutInCol) o;
+        return col == that.col;
     }
 }

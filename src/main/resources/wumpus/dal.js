@@ -10,10 +10,7 @@
 
 
 function assert(cond) {
-    if (!cond) {
-        bp.log.info("ERROR: Assertion failed!")
-        exit(1)
-    }
+    bp.ASSERT(cond,"ERROR: Assertion failed!")
 }
 
 // return all cell entities that are near 'cell'
