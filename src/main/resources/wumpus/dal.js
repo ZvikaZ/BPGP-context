@@ -32,6 +32,11 @@ function getCellFromCtx(row, col) {
     return ctx.getEntityById("cell:" + row + "," + col)
 }
 
+function cellNearPlayer(cell) {
+    let player = ctx.getEntityById("player")
+    return near(cell, player)
+}
+
 ///////////////////////////////////////////////////////////////////
 
 const ROWS = 4
@@ -242,33 +247,20 @@ ctx.registerEffect("Play", function (action) {
 ///////////            strategies            //////////////
 ///////////////////////////////////////////////////////////
 
-// TODO (BUG): I'd like it to be "Cells.Near.Player.Without.Known.Danger"
-// i.e., return all cells that are near the player, and the player isn't aware of any danger in them
-// However, adding the && cellNearPlayer(entity) fails, with:
-// 'Cannot call this function within an effect function'
-//
-// return all cells that player isn't aware of any danger in them
-ctx.registerQuery("Cell.Unvisited.Unknown.Danger", function (entity) {
-    function cellNearPlayer(cell) {
-        let player = ctx.getEntityById("player")
-        return near(cell, player)
-    }
 
-    return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" //TODO fails: && cellNearPlayer(entity)
+// return all cells that are near the player, and the player isn't aware of any danger in them
+ctx.registerQuery("Cells.Near.Player.Without.Known.Danger", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" && cellNearPlayer(entity)
 })
 
-// same problem as "Cell.Unvisited.Unknown.Danger"
-//
-// return all cells that player hasn't been to, and he knows that are clean from danger
-ctx.registerQuery("Cell.Unvisited.No.Danger", function (entity) {
-    return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean"
+// return all cells that are near the player, he hasn't been to, and he knows that are clean from danger
+ctx.registerQuery("Cell.Near.Player.Unvisited.No.Danger", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean" && cellNearPlayer(entity)
 })
 
-// same problem as "Cell.Unvisited.Unknown.Danger"
-//
-// return all cells that player has already visited (and therefore, are also clean)
-ctx.registerQuery("Cell.Visited", function (entity) {
-    return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited"
+// return all cells that are near the player, he has already visited (and therefore, are also clean)
+ctx.registerQuery("Cell.Near.Player.Visited", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" && cellNearPlayer(entity)
 })
 
 

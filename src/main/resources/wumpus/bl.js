@@ -116,7 +116,6 @@ bthread("boardPrinter", function() {
         }
         bp.log.info("--------------------")
         sync({waitFor: AnyPlay});
-        waitForEffectUpdate();
     }
 })
 
@@ -124,52 +123,33 @@ bthread("boardPrinter", function() {
 ///////////            strategies            //////////////
 ///////////////////////////////////////////////////////////
 
-// TODO we'd like this to use the query "Cells.Near.Player.Without.Known.Danger"
-// (i.e., all cells that are near the player, and the player isn't aware of any danger in them)
-// but that query doesn't work - see comment in dal.js
-// therefore, we use the less powerful query, and check here whether the player is near
-ctx.bthread("player - go to unvisited cell with no known danger", "Cell.Unvisited.Unknown.Danger", function (cell) {
+// go to cells that are near the player, and the player isn't aware of any danger in them
+ctx.bthread("player - go to unvisited cell with no known danger", "Cells.Near.Player.Without.Known.Danger", function (cell) {
     while(true) {
-        //TODO remove the 'player' entity from this bt, when the bug in 'execute plan' will be fixed
-        let player = ctx.getEntityById("player")
         let plan = shortPlan(player, cell)
-        //TODO remove 'if' - when we'll use the stronger query, there will always be legal plan
-        if (plan) {
-            // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-            sync({request: Event("Plan", {plan: plan, player: player}), waitFor: AnyPlan}, 60)
-        }
+        // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
+        sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
         sync({waitFor: AnyPlay})
-        waitForEffectUpdate();
     }
 })
 
-// same comments from Cell.Unvisited.Unknown.Danger apply here
-// go to cell that we haven't visited before, and we are sure that's not dangerous - be an explorer, but safely
-ctx.bthread("player - go to unvisited cell without danger", "Cell.Unvisited.No.Danger", function (cell) {
+// go to cells that are near the player, we haven't visited before, and we are sure that aren't dangerous - be an explorer, but safely
+ctx.bthread("player - go to unvisited cell without danger", "Cell.Near.Player.Unvisited.No.Danger", function (cell) {
     while(true) {
-        let player = ctx.getEntityById("player")
         let plan = shortPlan(player, cell)
-        if (plan) {
-            // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-            sync({request: Event("Plan", {plan: plan, player: player}), waitFor: AnyPlan}, 70)
-        }
+        // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
+        sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
         sync({waitFor: AnyPlay})
-        waitForEffectUpdate();
     }
 })
 
-// same comments from Cell.Unvisited.Unknown.Danger apply here
-// go to cell that we have already visited (and therefore, is safe) - boring, but might prove useful to open new frontiers from there
-ctx.bthread("player - return to visited cell", "Cell.Visited", function (cell) {
+// go to cells that are near the player, we have already visited (and therefore, are safe) - boring, but might prove useful to open new frontiers from there
+ctx.bthread("player - return to visited cell", "Cell.Near.Player.Visited", function (cell) {
     while(true) {
-        let player = ctx.getEntityById("player")
         let plan = shortPlan(player, cell)
-        if (plan) {
-            // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-            sync({request: Event("Plan", {plan: plan, player: player}), waitFor: AnyPlan}, 50)
-        }
+        // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
+        sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
         sync({waitFor: AnyPlay})
-        waitForEffectUpdate();
     }
 })
 
@@ -184,7 +164,6 @@ ctx.bthread("Grab gold", "Player.In.Cell.With.Gold", function (entity) {
     // the loop is required, because maybe the some other action was selected, and the gold wasn't grabbed
     while (true) {
         sync({request: Event("Play", {id: 'grab'})}, 110)
-        waitForEffectUpdate();
     }
 })
 
@@ -193,8 +172,7 @@ ctx.bthread("Escape from cave with gold", "Player.Has.Gold", function (kb) {
     //TODO take shortest path, instead of return as we came...
     let plan = createReversedPlan(kb.actions_history)
     plan.push('climb')
-    let player = ctx.getEntityById("player")        //TODO remove the 'player' entity, when the bug in 'execute plan' will be fixed
-    sync({request: Event("Plan", {plan: plan, player: player}), waitFor: AnyPlan}, 100)
+    sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 100)
 })
 
 
@@ -208,31 +186,14 @@ bthread("execute plan", function() {
         let e = sync({waitFor: AnyPlan})
         let plan = e.data.plan
         bp.log.info(plan)
-        let player = ctx.getEntityById("player")
-        // TODO (BUG): theoretically, this 'if' shouldn't be required - it's here as workaround to strange (timing?) bug,
-        // where early, and irrelevent plans are executed
-        // it's a bug, because the event requesting those plans should have been canceled by the
-        // 'sync({request: Event("Plan" ...), waitFor: AnyPlan}'
-        // construct
-        if (player.row == e.data.player.row && player.col == e.data.player.col && player.facing == e.data.player.facing) {
-            bp.log.info("execute plan, got: " + plan)
-            for (var i = 0; i < plan.length; i++) {
-                sync({request: Event("Play", {id: plan[i]})}, 140)
-                waitForEffectUpdate();
-                bp.log.info("Executed step #" + i + " of plan: " + plan)
-                bp.log.info(e)
-            }
-            player = ctx.getEntityById("player")
-            bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
-        } else {
-            // usually, if we're here, the run will early stop - but anyway, being here is already a bug
-            bp.log.info("execute plan, ignored old: " + plan)
+        bp.log.info("execute plan, got: " + plan)
+        for (var i = 0; i < plan.length; i++) {
+            sync({request: Event("Play", {id: plan[i]})}, 140)
+            bp.log.info("Executed step #" + i + " of plan: " + plan)
             bp.log.info(e)
         }
+        player = ctx.getEntityById("player")
+        bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
     }
 })
 
-// can be removed after CoBP will fix read/write lock
-function waitForEffectUpdate() {
-    sync({request: Event("Dummy")}, 10000)
-}
