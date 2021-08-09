@@ -159,7 +159,7 @@ ctx.bthread("player - return to visited cell", "Cell.NearVisited", function (cel
 
 
 // player is in cell with gold - try to take it
-ctx.bthread("Grab gold", "Player.In.Cell.With.Gold", function (entity) {
+ctx.bthread("Grab gold", "PlayerInCellWithGold", function (entity) {
     // the loop is required, because maybe the some other action was selected, and the gold wasn't grabbed
     while (true) {
         //TODO remove prio
@@ -168,7 +168,7 @@ ctx.bthread("Grab gold", "Player.In.Cell.With.Gold", function (entity) {
 })
 
 // player just took gold - return to beginning, and climb out
-ctx.bthread("Escape from cave with gold", "Player.Has.Gold", function (kb) {
+ctx.bthread("Escape from cave with gold", "PlayerHasGold", function (kb) {
     //TODO take shortest path, instead of return as we came...
     let plan = createReversedPlan(kb.actions_history)
     plan.push('climb')
@@ -182,20 +182,15 @@ ctx.bthread("Escape from cave with gold", "Player.Has.Gold", function (kb) {
 ////////////////////////////////////////////
 
 // a utility BT - not candidate for evolution - receives a plan ( = list of action strings), and just executes it, step by step
-// TODO: plan as entity, change this to context (and remove prio)
-bthread("execute plan", function() {
-    while (true) {
-        let e = sync({waitFor: AnyPlan})
-        let plan = e.data.plan
-        bp.log.info(plan)
-        bp.log.info("execute plan, got: " + plan)
-        for (var i = 0; i < plan.length; i++) {
-            sync({request: Event("Play", {id: plan[i]})}, 140)
-            bp.log.info("Executed step #" + i + " of plan: " + plan)
-            bp.log.info(e)
-        }
-        player = ctx.getEntityById("player")
-        bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
+ctx.bthread("Execute plan", "Active plan", function (entity) {
+    let plan = entity.val
+    bp.log.info("execute plan, got: " + plan)
+    for (var i = 0; i < plan.length; i++) {
+        sync({request: Event("Play", {id: plan[i]})}, 140)
+        bp.log.info("Executed step #" + i + " of plan: " + plan)
     }
-})
+    sync({request: Event("Finished plan")}, 240)
 
+    player = ctx.getEntityById("player")
+    bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
+})

@@ -52,23 +52,24 @@ function init(){
 
     let score = ctx.Entity("score", "", {val: 0})
 
-// amount of arrows player has
+    // amount of arrows player has
     let arrows = ctx.Entity("arrows", "", {val: 1})
 
-// player's location and direction
+    // player's location and direction
     let player = ctx.Entity("player", "", {
         row: 1,
         col: 1,
         facing: 90
     })
 
-// player's knowledge base - what he knows about the world and his actions
+    // player's knowledge base - what he knows about the world and his actions
     let kb = ctx.Entity("kb", "", {
         wumpus: 'alive',
         player_has_gold: false,
         actions_history: []
     })
 
+    let plan = ctx.Entity("plan", "", {val: []})
 
     let cells = []
     for (let i = 1; i <= ROWS; i++)
@@ -95,19 +96,18 @@ function init(){
 
 
     ctx.populateContext(cells.concat(
-        [gameStatus, score, arrows, kb, player]))
+        [gameStatus, score, arrows, kb, player, plan]))
 }
 
 init()
 
 ///////////////////////////////////////////////
 
-ctx.registerQuery("Player.Has.Gold", function (entity) {
+ctx.registerQuery("PlayerHasGold", function (entity) {
     return entity.id.equals("kb") && entity.player_has_gold
 })
 
-ctx.registerQuery("Player.In.Cell.With.Gold", function (entity) {
-    //TODO do we need 'glitter'?
+ctx.registerQuery("PlayerInCellWithGold", function (entity) {
     return entity.type.equals("cell") && entity.hasGold && entity.hasPlayer
 })
 
@@ -118,6 +118,11 @@ ctx.registerQuery("Game ongoing", function (entity) {
 ctx.registerQuery("Game over", function (entity) {
     return entity.id.equals("game status") && entity.val.equals("finished")
 })
+
+ctx.registerQuery("Active plan", function (entity) {
+    return entity.id.equals("plan") && entity.val.length > 0
+})
+
 
 
 ///////////////////////////////////////////////
@@ -236,7 +241,6 @@ ctx.registerEffect("Play", function (action) {
                 (player.facing == 90 && player.row == wumpus.row && player.col < wumpus.col) ||
                 (player.facing == 270 && player.row == wumpus.row && player.col > wumpus.col)
             ) {
-                // TODO do we need "scream"?
                 wumpus.status = "dead"
                 ctx.updateEntity(wumpus)
             }
@@ -252,6 +256,19 @@ ctx.registerEffect("Play", function (action) {
     updateCellStatus(action);
 })
 
+ctx.registerEffect("Plan", function (event) {
+    let plan = ctx.getEntityById("plan")
+    if (plan.val.length == 0) {
+        plan.val = event.plan.slice()   // '.slice()' makes a copy
+        ctx.updateEntity(plan)
+    }
+})
+
+ctx.registerEffect("Finished plan", function (event) {
+    let plan = ctx.getEntityById("plan")
+    plan.val = []
+    ctx.updateEntity(plan)
+})
 
 ///////////////////////////////////////////////////////////
 ///////////            strategies            //////////////
