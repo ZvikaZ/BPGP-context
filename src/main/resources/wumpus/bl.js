@@ -17,7 +17,7 @@ function direction(a, b) {
 }
 
 // return plan from player to b, assuming near(player,b)
-function shortPlan(player, b) {
+function planToNear(player, b) {
     if (!near(player, b))
         return null
 
@@ -124,9 +124,11 @@ bthread("boardPrinter", function() {
 ///////////////////////////////////////////////////////////
 
 // go to cells that are near the player, and the player isn't aware of any danger in them
+//TODO Cells.Near.Player.Without.Known.Dange -> Cells.NearWithoutKnownDanger
+//TODO in the query - no gold yet
 ctx.bthread("player - go to unvisited cell with no known danger", "Cells.Near.Player.Without.Known.Danger", function (cell) {
     while(true) {
-        let plan = shortPlan(player, cell)
+        let plan = planToNear(player, cell) //TODO remove player
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
     }
@@ -135,7 +137,7 @@ ctx.bthread("player - go to unvisited cell with no known danger", "Cells.Near.Pl
 // go to cells that are near the player, we haven't visited before, and we are sure that aren't dangerous - be an explorer, but safely
 ctx.bthread("player - go to unvisited cell without danger", "Cell.Near.Player.Unvisited.No.Danger", function (cell) {
     while(true) {
-        let plan = shortPlan(player, cell)
+        let plan = planToNear(player, cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
     }
@@ -144,7 +146,7 @@ ctx.bthread("player - go to unvisited cell without danger", "Cell.Near.Player.Un
 // go to cells that are near the player, we have already visited (and therefore, are safe) - boring, but might prove useful to open new frontiers from there
 ctx.bthread("player - return to visited cell", "Cell.Near.Player.Visited", function (cell) {
     while(true) {
-        let plan = shortPlan(player, cell)
+        let plan = planToNear(player, cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
     }
@@ -160,6 +162,7 @@ ctx.bthread("player - return to visited cell", "Cell.Near.Player.Visited", funct
 ctx.bthread("Grab gold", "Player.In.Cell.With.Gold", function (entity) {
     // the loop is required, because maybe the some other action was selected, and the gold wasn't grabbed
     while (true) {
+        //TODO remove prio
         sync({request: Event("Play", {id: 'grab'})}, 110)
     }
 })
@@ -169,6 +172,7 @@ ctx.bthread("Escape from cave with gold", "Player.Has.Gold", function (kb) {
     //TODO take shortest path, instead of return as we came...
     let plan = createReversedPlan(kb.actions_history)
     plan.push('climb')
+    //TODO remove prio
     sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 100)
 })
 
@@ -178,6 +182,7 @@ ctx.bthread("Escape from cave with gold", "Player.Has.Gold", function (kb) {
 ////////////////////////////////////////////
 
 // a utility BT - not candidate for evolution - receives a plan ( = list of action strings), and just executes it, step by step
+// TODO: plan as entity, change this to context (and remove prio)
 bthread("execute plan", function() {
     while (true) {
         let e = sync({waitFor: AnyPlan})

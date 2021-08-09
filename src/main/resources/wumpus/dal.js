@@ -8,6 +8,14 @@
 // "visited" means we've already been to the cell (and as a side effect, it's also clean)
 // (*) see updateNoIndications(..)
 
+//TODO (future) change word states to numerical probs  (motivation: 1. better evolution 2. better for paper)
+// unknown wumpus = 1/size
+// unknown pit = ?  maybe 50% ?
+// clean = 0
+// add prio to gold
+
+
+
 
 // return all cell entities that are near 'cell'
 function getNearCells(cell) {
@@ -39,6 +47,9 @@ const ROWS = 4
 const COLS = 4
 const MAX_ACTIONS = (ROWS * COLS) * (ROWS * COLS)
 
+function init(){
+    //TODO
+}
 let gameStatus = ctx.Entity("game status", "", {val: "ongoing"})
 
 let score = ctx.Entity("score", "", {val: 0})
@@ -64,20 +75,22 @@ let kb = ctx.Entity("kb", "", {
 let cells = []
 for (let i = 1; i <= ROWS; i++)
     for (let j = 1; j <= COLS; j++)
-        cells.push(ctx.Entity("cell:" + i + "," + j, "cell",{
+        cells.push(ctx.Entity("cell:" + i + "," + j, "cell", {
             row: i,
             col: j,
 
             // has* mean that there are actually there, regardless of player's knowledge
-            hasPlayer: i==1 && j==1,
+            hasPlayer: i == 1 && j == 1,
             //TODO: randomize these
-            hasPit: (i==1 && j==3) || (i==3 & j==3) || (i==4 && j==4),
-            hasGold: i==3 && j==2,
-            hasWumpus: i==3 && j==1,
+            hasPit: (i == 1 && j == 3) || (i == 3 & j == 3) || (i == 4 && j == 4),
+            hasGold: i == 3 && j == 2,
+            hasWumpus: i == 3 && j == 1,
 
-            // from here below, it's the player's subjective knowledge
+            //TODO explain, add 'Observed'
             Breeze: false,
             Stench: false,
+
+            // from here below, it's the player's subjective knowledge
             Pit: "unknown",
             Wumpus: "unknown"
         }))
@@ -243,6 +256,15 @@ ctx.registerEffect("Play", function (action) {
 ///////////            strategies            //////////////
 ///////////////////////////////////////////////////////////
 
+// other possibility, left here as reference
+// // return all cells that are near the player, and the player isn't aware of any danger in them
+// function near2(cell) {
+//     return function (entity) {
+//         return entity.type.equals("cell") &&
+//             ((Math.abs(entity.row - cell.row) == 1 && entity.col == cell.col) || (Math.abs(entity.col - cell.col) == 1 && entity.row == cell.row))
+//     }
+// }
+// ... && ctx.runQuery(near2(entity))
 
 // return all cells that are near the player, and the player isn't aware of any danger in them
 ctx.registerQuery("Cells.Near.Player.Without.Known.Danger", function (entity) {
@@ -333,7 +355,7 @@ function updateDanger(danger, row, col) {
         let cell = getCellFromCtx(row, col)
         if (cell[danger] == "unknown") {
             cell[danger] = "possible"
-        } else if (cell[danger] == "visited" || cell[danger] == "possible" || cell[danger] == "clean")  {
+        } else if (cell[danger] == "visited" || cell[danger] == "possible" || cell[danger] == "clean") {
             // pass
         } else {
             bp.log.info("Unhandled: " + cell[danger])
