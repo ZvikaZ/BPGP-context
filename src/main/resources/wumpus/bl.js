@@ -129,7 +129,6 @@ ctx.bthread("player - go to unvisited cell with no known danger", "Cells.Near.Pl
         let plan = shortPlan(player, cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
-        sync({waitFor: AnyPlay})
     }
 })
 
@@ -139,7 +138,6 @@ ctx.bthread("player - go to unvisited cell without danger", "Cell.Near.Player.Un
         let plan = shortPlan(player, cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
-        sync({waitFor: AnyPlay})
     }
 })
 
@@ -149,7 +147,6 @@ ctx.bthread("player - return to visited cell", "Cell.Near.Player.Visited", funct
         let plan = shortPlan(player, cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
-        sync({waitFor: AnyPlay})
     }
 })
 

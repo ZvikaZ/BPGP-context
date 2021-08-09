@@ -9,10 +9,6 @@
 // (*) see updateNoIndications(..)
 
 
-function assert(cond) {
-    bp.ASSERT(cond,"ERROR: Assertion failed!")
-}
-
 // return all cell entities that are near 'cell'
 function getNearCells(cell) {
     let result = []
@@ -134,7 +130,7 @@ function gameOver(reason) {
 function updateCellStatus(action) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
-    assert(cell.hasPlayer)
+    bp.ASSERT(cell.hasPlayer, "ERROR: updateCellStatus: cell.hasPlayer is false!")
 
     // update things that are in this cell
     if (cell.hasPit) {
