@@ -48,56 +48,57 @@ const COLS = 4
 const MAX_ACTIONS = (ROWS * COLS) * (ROWS * COLS)
 
 function init(){
-    //TODO
-}
-let gameStatus = ctx.Entity("game status", "", {val: "ongoing"})
+    let gameStatus = ctx.Entity("game status", "", {val: "ongoing"})
 
-let score = ctx.Entity("score", "", {val: 0})
+    let score = ctx.Entity("score", "", {val: 0})
 
 // amount of arrows player has
-let arrows = ctx.Entity("arrows", "", {val: 1})
+    let arrows = ctx.Entity("arrows", "", {val: 1})
 
 // player's location and direction
-let player = ctx.Entity("player", "", {
-    row: 1,
-    col: 1,
-    facing: 90
-})
+    let player = ctx.Entity("player", "", {
+        row: 1,
+        col: 1,
+        facing: 90
+    })
 
 // player's knowledge base - what he knows about the world and his actions
-let kb = ctx.Entity("kb", "", {
-    wumpus: 'alive',
-    player_has_gold: false,
-    actions_history: []
-})
+    let kb = ctx.Entity("kb", "", {
+        wumpus: 'alive',
+        player_has_gold: false,
+        actions_history: []
+    })
 
 
-let cells = []
-for (let i = 1; i <= ROWS; i++)
-    for (let j = 1; j <= COLS; j++)
-        cells.push(ctx.Entity("cell:" + i + "," + j, "cell", {
-            row: i,
-            col: j,
+    let cells = []
+    for (let i = 1; i <= ROWS; i++)
+        for (let j = 1; j <= COLS; j++)
+            cells.push(ctx.Entity("cell:" + i + "," + j, "cell", {
+                row: i,
+                col: j,
 
-            // has* mean that there are actually there, regardless of player's knowledge
-            hasPlayer: i == 1 && j == 1,
-            //TODO: randomize these
-            hasPit: (i == 1 && j == 3) || (i == 3 & j == 3) || (i == 4 && j == 4),
-            hasGold: i == 3 && j == 2,
-            hasWumpus: i == 3 && j == 1,
+                // has* mean that there are actually there, regardless of player's knowledge
+                hasPlayer: i == 1 && j == 1,
+                //TODO: randomize these
+                hasPit: (i == 1 && j == 3) || (i == 3 & j == 3) || (i == 4 && j == 4),
+                hasGold: i == 3 && j == 2,
+                hasWumpus: i == 3 && j == 1,
 
-            //TODO explain, add 'Observed'
-            Breeze: false,
-            Stench: false,
+                // player has observed these indications in the cell
+                ObservedBreeze: false,
+                ObservedStench: false,
 
-            // from here below, it's the player's subjective knowledge
-            Pit: "unknown",
-            Wumpus: "unknown"
-        }))
+                // from here below, it's the player's subjective knowledge
+                Pit: "unknown",
+                Wumpus: "unknown"
+            }))
 
 
-ctx.populateContext(cells.concat(
-    [gameStatus, score, arrows, kb, player]))
+    ctx.populateContext(cells.concat(
+        [gameStatus, score, arrows, kb, player]))
+}
+
+init()
 
 ///////////////////////////////////////////////
 
@@ -161,11 +162,11 @@ function updateCellStatus(action) {
     for (let i = 0; i < nearCells.length; i++) {
         let nearCell = nearCells[i]
         if (nearCell.hasPit) {
-            updateIndication("Breeze")
+            updateIndication("ObservedBreeze")
             updateDangers("Pit")
         }
         if (nearCell.hasWumpus) {
-            updateIndication("Stench")
+            updateIndication("ObservedStench")
             updateDangers("Wumpus")
         }
     }
@@ -267,17 +268,17 @@ ctx.registerEffect("Play", function (action) {
 // ... && ctx.runQuery(near2(entity))
 
 // return all cells that are near the player, and the player isn't aware of any danger in them
-ctx.registerQuery("Cells.Near.Player.Without.Known.Danger", function (entity) {
+ctx.registerQuery("Cells.NearWithoutKnownDanger", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" && cellNearPlayer(entity)
 })
 
 // return all cells that are near the player, he hasn't been to, and he knows that are clean from danger
-ctx.registerQuery("Cell.Near.Player.Unvisited.No.Danger", function (entity) {
+ctx.registerQuery("Cell.NearUnvisitedNoDanger", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean" && cellNearPlayer(entity)
 })
 
 // return all cells that are near the player, he has already visited (and therefore, are also clean)
-ctx.registerQuery("Cell.Near.Player.Visited", function (entity) {
+ctx.registerQuery("Cell.NearVisited", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" && cellNearPlayer(entity)
 })
 
@@ -285,7 +286,7 @@ ctx.registerQuery("Cell.Near.Player.Visited", function (entity) {
 ////////////////////////////////////
 
 // update player's knowledge about specific indication in his location (because of danger in near cell)
-// ind is either "Breeze" or "Stench"
+// ind is either "ObservedBreeze" or "ObservedStench"
 function updateIndication(ind) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
@@ -318,7 +319,7 @@ function updateKb(id) {
 function updateNoIndications(kb) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
-    if (!cell.Breeze) {
+    if (!cell.ObservedBreeze) {
         bp.log.info("No Breeze indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
         // bp.log.info(cell)
         cleanDanger("Pit", player.row + 1, player.col)
@@ -326,7 +327,7 @@ function updateNoIndications(kb) {
         cleanDanger("Pit", player.row, player.col + 1)
         cleanDanger("Pit", player.row, player.col - 1)
     }
-    if (!cell.Stench) {
+    if (!cell.ObservedStench) {
         bp.log.info("No Stench indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
         // bp.log.info(cell)
         cleanDanger("Wumpus", player.row + 1, player.col)

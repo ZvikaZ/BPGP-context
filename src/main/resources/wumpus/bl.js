@@ -17,7 +17,8 @@ function direction(a, b) {
 }
 
 // return plan from player to b, assuming near(player,b)
-function planToNear(player, b) {
+function planToNear(b) {
+    let player = ctx.getEntityById("player")
     if (!near(player, b))
         return null
 
@@ -124,29 +125,28 @@ bthread("boardPrinter", function() {
 ///////////////////////////////////////////////////////////
 
 // go to cells that are near the player, and the player isn't aware of any danger in them
-//TODO Cells.Near.Player.Without.Known.Dange -> Cells.NearWithoutKnownDanger
 //TODO in the query - no gold yet
-ctx.bthread("player - go to unvisited cell with no known danger", "Cells.Near.Player.Without.Known.Danger", function (cell) {
+ctx.bthread("player - go to unvisited cell with no known danger", "Cells.NearWithoutKnownDanger", function (cell) {
     while(true) {
-        let plan = planToNear(player, cell) //TODO remove player
+        let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
     }
 })
 
 // go to cells that are near the player, we haven't visited before, and we are sure that aren't dangerous - be an explorer, but safely
-ctx.bthread("player - go to unvisited cell without danger", "Cell.Near.Player.Unvisited.No.Danger", function (cell) {
+ctx.bthread("player - go to unvisited cell without danger", "Cell.NearUnvisitedNoDanger", function (cell) {
     while(true) {
-        let plan = planToNear(player, cell)
+        let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
     }
 })
 
 // go to cells that are near the player, we have already visited (and therefore, are safe) - boring, but might prove useful to open new frontiers from there
-ctx.bthread("player - return to visited cell", "Cell.Near.Player.Visited", function (cell) {
+ctx.bthread("player - return to visited cell", "Cell.NearVisited", function (cell) {
     while(true) {
-        let plan = planToNear(player, cell)
+        let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
     }
