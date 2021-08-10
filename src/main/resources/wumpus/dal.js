@@ -36,11 +36,6 @@ function getCellFromCtx(row, col) {
     return ctx.getEntityById("cell:" + row + "," + col)
 }
 
-function cellNearPlayer(cell) {
-    let player = ctx.getEntityById("player")
-    return near(cell, player)
-}
-
 ///////////////////////////////////////////////////////////////////
 
 const ROWS = 4
@@ -284,19 +279,27 @@ ctx.registerEffect("Finished plan", function (event) {
 // }
 // ... && ctx.runQuery(near2(entity))
 
-// return all cells that are near the player, and the player isn't aware of any danger in them
-ctx.registerQuery("Cells.NearWithoutKnownDanger", function (entity) {
-    return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" && cellNearPlayer(entity)
+function cellNearPlayer(cell) {
+    let player = ctx.getEntityById("player")
+    return near(cell, player)
+}
+
+// return all cells that are near the player, and the player isn't aware of any danger in them - before player has taken gold
+ctx.registerQuery("Cells.NearWithoutKnownDanger_NoGold", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" &&
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
-// return all cells that are near the player, he hasn't been to, and he knows that are clean from danger
-ctx.registerQuery("Cell.NearUnvisitedNoDanger", function (entity) {
-    return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean" && cellNearPlayer(entity)
+// return all cells that are near the player, he hasn't been to, and he knows that are clean from danger - before player has taken gold
+ctx.registerQuery("Cell.NearUnvisitedNoDanger_NoGold", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean" &&
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
-// return all cells that are near the player, he has already visited (and therefore, are also clean)
-ctx.registerQuery("Cell.NearVisited", function (entity) {
-    return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" && cellNearPlayer(entity)
+// return all cells that are near the player, he has already visited (and therefore, are also clean) - before player has taken gold
+ctx.registerQuery("Cell.NearVisited_NoGold", function (entity) {
+    return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" &&
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
 
