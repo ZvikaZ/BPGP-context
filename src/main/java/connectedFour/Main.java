@@ -26,13 +26,17 @@ public class Main {
 //    private static final Level logLevel = Level.CtxChanged;
     private static final Level logLevel = Level.ALL;
 
+    static int seed = 2;    //TODO randomize it? remove it altogether?
+
 
     public static void main(final String[] args) throws URISyntaxException {
         BProgram bprog = new ContextBProgram("wumpus/dal.js", "wumpus/bl.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
-        bprog.setEventSelectionStrategy(new PrioritizedBSyncEventSelectionStrategy());
+        var prio = new PrioritizedBSyncEventSelectionStrategy(seed);
+        prio.setDefaultPriority(0);
+        bprog.setEventSelectionStrategy(prio);
 //      bprog.setWaitForExternalEvents(true);
         rnr.run();
     }

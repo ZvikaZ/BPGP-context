@@ -80,7 +80,8 @@ bthread("start", function() {
 
 ctx.bthread("Game over", "Game over", function (entity) {
     bp.log.info("Game over: " + entity.reason + ", score: " + entity.score)
-    sync({block: bp.eventSets.all})
+    let ev = Event("Game over", {score: entity.score})
+    sync({request: ev, block: ev.negate()})
 })
 
 
