@@ -22,7 +22,7 @@ function planToNear(b) {
     if (!near(player, b)) {
         bp.log.info(player)
         bp.log.info(b)
-        throw new Error("planToNear: player is not near! he is at: " + player.row + "," + player.col)
+        throw new Error("planToNear: player is not near " + b.row + "," + b.col + "! he is at: " + player.row + "," + player.col)
     }
 
     let delta = direction(player, b) - player.facing
@@ -136,7 +136,7 @@ ctx.bthread("player - go to unvisited cell with no known danger", "Cells.NearWit
 
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: bp.AnyCtxEntityChanged}, 60)
+        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 60)
     }
 })
 
@@ -149,7 +149,7 @@ ctx.bthread("player - go to unvisited cell without danger", "Cell.NearUnvisitedN
 
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: bp.AnyCtxEntityChanged}, 70)
+        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 70)
     }
 })
 
@@ -162,7 +162,7 @@ ctx.bthread("player - return to visited cell", "Cell.NearVisited_NoGold", functi
 
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: bp.AnyCtxEntityChanged}, 50)
+        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 50)
     }
 })
 

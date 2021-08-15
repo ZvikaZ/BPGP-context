@@ -278,30 +278,29 @@ ctx.registerEffect("Finished plan", function (event) {
 // }
 // ... && ctx.runQuery(near2(entity))
 
-function cellNearPlayer(cell) {
+function cellNearPlayer(cell, query) {
     let player = ctx.getEntityById("player")
-    //TODO uncomment this, but it works only with COBP 0.3.0 (and not 0.2.5)
-    // bp.log.info("query: player is at: " + player.row + "," + player.col + ". is he near " + cell.row + "," + cell.col +
-    //     "? " + near(cell, player))
+    bp.log.info(query + " query: player is at: " + player.row + "," + player.col + ". is he near " + cell.row + "," + cell.col +
+        "? " + near(cell, player))
     return near(cell, player)
 }
 
 // return all cells that are near the player, and the player isn't aware of any danger in them - before player has taken gold
 ctx.registerQuery("Cells.NearWithoutKnownDanger_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" &&
-        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
+        cellNearPlayer(entity, "Cells.NearWithoutKnownDanger_NoGold") && !ctx.getEntityById("kb").player_has_gold
 })
 
 // return all cells that are near the player, he hasn't been to, and he knows that are clean from danger - before player has taken gold
 ctx.registerQuery("Cell.NearUnvisitedNoDanger_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean" &&
-        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
+        cellNearPlayer(entity, "Cell.NearUnvisitedNoDanger_NoGold") && !ctx.getEntityById("kb").player_has_gold
 })
 
 // return all cells that are near the player, he has already visited (and therefore, are also clean) - before player has taken gold
 ctx.registerQuery("Cell.NearVisited_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" &&
-        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
+        cellNearPlayer(entity, "Cell.NearVisited_NoGold") && !ctx.getEntityById("kb").player_has_gold
 })
 
 
