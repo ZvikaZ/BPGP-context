@@ -245,7 +245,6 @@ ctx.registerEffect("Play", function (action) {
             gameOver("climbed")
         }
     } else {
-        bp.log.info("Unrecognized action: " + action.id)
         throw new Error("Unrecognized action: " + action.id)
     }
     updateCellStatus(action);
@@ -281,6 +280,9 @@ ctx.registerEffect("Finished plan", function (event) {
 
 function cellNearPlayer(cell) {
     let player = ctx.getEntityById("player")
+    //TODO uncomment this, but it works only with COBP 0.3.0 (and not 0.2.5)
+    // bp.log.info("query: player is at: " + player.row + "," + player.col + ". is he near " + cell.row + "," + cell.col +
+    //     "? " + near(cell, player))
     return near(cell, player)
 }
 
@@ -330,8 +332,7 @@ function updateKb(id) {
     updateNoIndications(kb)
 
     if (kb.actions_history.length > MAX_ACTIONS) {
-        bp.log.info("stuck in infinite loop, exiting")
-        exit(1)
+        throw new Error("stuck in infinite loop, exiting")
     }
 }
 
@@ -381,7 +382,7 @@ function updateDanger(danger, row, col) {
         } else {
             bp.log.info("Unhandled: " + cell[danger])
             bp.log.info(cell)
-            exit(1)
+            throw new Error("unhandled danger")
         }
         // bp.log.info("updateDanger: " + danger + " at " + row + "," + col + " to " + cell[danger])
         ctx.updateEntity(cell)
@@ -401,7 +402,7 @@ function cleanDanger(danger, row, col) {
         } else {
             bp.log.info("Unhandled: " + cell[danger])
             bp.log.info(cell)
-            exit(1)
+            throw new Error("unhandled danger")
         }
         // bp.log.info(cell)
         ctx.updateEntity(cell)
