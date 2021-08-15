@@ -36,7 +36,7 @@ function planToNear(b) {
     } else if (delta == 270) {
         result.push('turn-left')
     } else {
-        error()
+        throw new Error('unknown delta')
     }
     result.push('forward')
     return result
@@ -58,14 +58,9 @@ function createReversedPlan() {
     return plan
 }
 
-const AnyPlay = bp.EventSet("Play", function (evt) {
-    return evt.name.equals("Play")
-})
-
-const AnyPlan = bp.EventSet("Plan", function (evt) {
-    return evt.name.equals("Plan")
-})
-
+const AnyPlay = Any('Play')
+const AnyPlan = Any('Plan')
+const grab = Event("Play", {id: 'grab'})
 
 ///////////////////////////////////////////////////////////
 ///////////            rules                 //////////////
@@ -82,6 +77,7 @@ ctx.bthread("Game over", "Game over", function (entity) {
     bp.log.info("Game over: " + entity.reason + ", score: " + entity.score)
     let ev = Event("Game over", {score: entity.score})
     sync({request: ev, block: ev.negate()})
+    sync({block: bp.all})
 })
 
 
@@ -133,7 +129,7 @@ ctx.bthread("player - go to unvisited cell with no known danger", "Cells.NearWit
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 60)
+        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 60)
     }
 })
 
@@ -142,7 +138,7 @@ ctx.bthread("player - go to unvisited cell without danger", "Cell.NearUnvisitedN
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 70)
+        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 70)
     }
 })
 
@@ -151,7 +147,7 @@ ctx.bthread("player - return to visited cell", "Cell.NearVisited_NoGold", functi
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 50)
+        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 50)
     }
 })
 
@@ -166,7 +162,7 @@ ctx.bthread("Grab gold", "PlayerInCellWithGold", function (entity) {
     // the loop is required, because maybe the some other action was selected, and the gold wasn't grabbed
     while (true) {
         //TODO remove prio
-        sync({request: Event("Play", {id: 'grab'})}, 110)
+        sync({request: grab, block: grab})
     }
 })
 
@@ -175,8 +171,8 @@ ctx.bthread("Escape from cave with gold", "PlayerHasGold", function (kb) {
     //TODO take shortest path, instead of return as we came...
     let plan = createReversedPlan()
     plan.push('climb')
-    //TODO remove prio
-    sync({request: Event("Plan", {plan: plan}), waitFor: AnyPlan}, 100)
+    let p = Event("Plan", {plan: plan})
+    sync({request: p, block: p.negate()})
 })
 
 
@@ -189,11 +185,11 @@ ctx.bthread("Execute plan", "Active plan", function (entity) {
     let plan = entity.val
     bp.log.info("execute plan, got: " + plan)
     for (var i = 0; i < plan.length; i++) {
-        sync({request: Event("Play", {id: plan[i]})}, 140)
+        sync({request: Event("Play", {id: plan[i]}), block: AnyPlan})
         bp.log.info("Executed step #" + i + " of plan: " + plan)
     }
-    sync({request: Event("Finished plan")}, 240)
+    // sync({request: Event("Finished plan")}, 240)
 
-    player = ctx.getEntityById("player")
+    let player = ctx.getEntityById("player")
     bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
 })

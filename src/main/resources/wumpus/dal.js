@@ -246,7 +246,7 @@ ctx.registerEffect("Play", function (action) {
         }
     } else {
         bp.log.info("Unrecognized action: " + action.id)
-        exit() // 'exit' is undefined - but anyway, it achieves its goal...
+        throw new Error("Unrecognized action: " + action.id)
     }
     updateCellStatus(action);
 })
