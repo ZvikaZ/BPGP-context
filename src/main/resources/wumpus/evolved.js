@@ -7,7 +7,7 @@
 
 
 // go to cells that are near the player, and the player isn't aware of any danger in them
-ctx.bthread("player - go to unvisited cell with no known danger", "Cells.NearWithoutKnownDanger_NoGold", function (cell) {
+ctx.bthread("player - go to unvisited cell with no known danger", "Cell.NearWithoutKnownDanger_NoGold", function (cell) {
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)

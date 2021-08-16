@@ -284,7 +284,7 @@ function cellNearPlayer(cell) {
 }
 
 // return all cells that are near the player, and the player isn't aware of any danger in them - before player has taken gold
-ctx.registerQuery("Cells.NearWithoutKnownDanger_NoGold", function (entity) {
+ctx.registerQuery("Cell.NearWithoutKnownDanger_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" &&
         cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
