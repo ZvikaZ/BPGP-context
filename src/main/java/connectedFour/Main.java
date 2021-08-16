@@ -26,7 +26,7 @@ public class Main {
 //    private static final Level logLevel = Level.CtxChanged;
     private static final Level logLevel = Level.ALL;
 
-    static int seed = 2;    //TODO randomize it? remove it altogether?
+    static long seed = System.currentTimeMillis();
 
 
     public static void main(final String[] args) throws URISyntaxException {
@@ -34,6 +34,7 @@ public class Main {
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
+        System.out.println("Using seed: " + seed);
         var prio = new PrioritizedBSyncEventSelectionStrategy(seed);
         prio.setDefaultPriority(0);
         bprog.setEventSelectionStrategy(prio);
