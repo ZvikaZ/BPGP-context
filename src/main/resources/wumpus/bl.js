@@ -127,6 +127,20 @@ bthread("boardPrinter", function() {
 
 // moved 3 main strategies to evolved.js
 
+// random walker, with low prio - to do something when strategies don't care
+bthread("player - random walker",  function () {
+    while(true) {
+        // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
+        sync({request: [
+            Event("Play", {id: 'turn-right'}),
+            Event("Play", {id: 'turn-left'}),
+            Event("Play", {id: 'forward'})
+        ], waitFor: ContextChanged}, 30)
+
+    }
+})
+
+
 // player is in cell with gold - try to take it
 ctx.bthread("Grab gold", "PlayerInCellWithGold", function (entity) {
     // the loop is required, because maybe the some other action was selected, and the gold wasn't grabbed
