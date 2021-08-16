@@ -144,7 +144,7 @@ function gameOver(reason) {
 function updateCellStatus(action) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
-    bp.ASSERT(cell.hasPlayer, "ERROR: updateCellStatus: cell.hasPlayer is false!")
+    // bp.ASSERT(cell.hasPlayer, "ERROR: updateCellStatus: cell.hasPlayer is false!")   //TODO return
 
     // update things that are in this cell
     if (cell.hasPit) {
@@ -278,29 +278,27 @@ ctx.registerEffect("Finished plan", function (event) {
 // }
 // ... && ctx.runQuery(near2(entity))
 
-function cellNearPlayer(cell, query) {
+function cellNearPlayer(cell) {
     let player = ctx.getEntityById("player")
-    bp.log.info(query + " query: player is at: " + player.row + "," + player.col + ". is he near " + cell.row + "," + cell.col +
-        "? " + near(cell, player))
     return near(cell, player)
 }
 
 // return all cells that are near the player, and the player isn't aware of any danger in them - before player has taken gold
 ctx.registerQuery("Cells.NearWithoutKnownDanger_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "unknown" && entity.Wumpus == "unknown" &&
-        cellNearPlayer(entity, "Cells.NearWithoutKnownDanger_NoGold") && !ctx.getEntityById("kb").player_has_gold
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
 // return all cells that are near the player, he hasn't been to, and he knows that are clean from danger - before player has taken gold
 ctx.registerQuery("Cell.NearUnvisitedNoDanger_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "clean" && entity.Wumpus == "clean" &&
-        cellNearPlayer(entity, "Cell.NearUnvisitedNoDanger_NoGold") && !ctx.getEntityById("kb").player_has_gold
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
 // return all cells that are near the player, he has already visited (and therefore, are also clean) - before player has taken gold
 ctx.registerQuery("Cell.NearVisited_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" &&
-        cellNearPlayer(entity, "Cell.NearVisited_NoGold") && !ctx.getEntityById("kb").player_has_gold
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
 
@@ -340,7 +338,7 @@ function updateNoIndications(kb) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
     if (!cell.ObservedBreeze) {
-        bp.log.info("No Breeze indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
+        // bp.log.info("No Breeze indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
         // bp.log.info(cell)
         cleanDanger("Pit", player.row + 1, player.col)
         cleanDanger("Pit", player.row - 1, player.col)
@@ -348,7 +346,7 @@ function updateNoIndications(kb) {
         cleanDanger("Pit", player.row, player.col - 1)
     }
     if (!cell.ObservedStench) {
-        bp.log.info("No Stench indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
+        // bp.log.info("No Stench indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
         // bp.log.info(cell)
         cleanDanger("Wumpus", player.row + 1, player.col)
         cleanDanger("Wumpus", player.row - 1, player.col)
@@ -379,9 +377,7 @@ function updateDanger(danger, row, col) {
         } else if (cell[danger] == "visited" || cell[danger] == "possible" || cell[danger] == "clean") {
             // pass
         } else {
-            bp.log.info("Unhandled: " + cell[danger])
-            bp.log.info(cell)
-            throw new Error("unhandled danger")
+            throw new Error("unhandled danger: " + cell[danger])
         }
         // bp.log.info("updateDanger: " + danger + " at " + row + "," + col + " to " + cell[danger])
         ctx.updateEntity(cell)
@@ -399,9 +395,7 @@ function cleanDanger(danger, row, col) {
         } else if (cell[danger] == "visited" || cell[danger] == "clean") {
             // pass
         } else {
-            bp.log.info("Unhandled: " + cell[danger])
-            bp.log.info(cell)
-            throw new Error("unhandled danger")
+            throw new Error("unhandled danger: " + cell[danger])
         }
         // bp.log.info(cell)
         ctx.updateEntity(cell)
@@ -415,7 +409,7 @@ function updateVisited(danger) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
     cell[danger] = "visited"
-    bp.log.info("updateVisited: " + danger + " at " + player.row + "," + player.col + " to " + cell[danger])
+    // bp.log.info("updateVisited: " + danger + " at " + player.row + "," + player.col + " to " + cell[danger])
     ctx.updateEntity(cell)
 }
 
