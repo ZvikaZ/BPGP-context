@@ -40,7 +40,6 @@ function getCellFromCtx(row, col) {
 
 const ROWS = 4
 const COLS = 4
-const MAX_ACTIONS = (ROWS * COLS) * (ROWS * COLS)
 
 function init(){
     let gameStatus = ctx.Entity("game status", "", {val: "ongoing"})
@@ -264,6 +263,11 @@ ctx.registerEffect("Finished plan", function (event) {
     ctx.updateEntity(plan)
 })
 
+ctx.registerEffect("Wandering", function (effect) {
+    gameOver("wandering")
+})
+
+
 ///////////////////////////////////////////////////////////
 ///////////            strategies            //////////////
 ///////////////////////////////////////////////////////////
@@ -327,10 +331,6 @@ function updateKb(id) {
 
     // check if we can clean near cells because of absent indications
     updateNoIndications(kb)
-
-    if (kb.actions_history.length > MAX_ACTIONS) {
-        throw new Error("stuck in infinite loop, exiting")
-    }
 }
 
 // if there isn't specific indication in player's location, mark near cells as clean from the corresponding danger

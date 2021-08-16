@@ -140,6 +140,13 @@ bthread("player - random walker",  function () {
     }
 })
 
+bthread("stop wandering around",  function () {
+    let max_actions = (ROWS * COLS) * (ROWS * COLS)
+    for (let i = 1; i <= max_actions; i++)
+        sync({waitFor: AnyPlay})
+    sync({request: Event("Wandering")}, 200)
+})
+
 
 // player is in cell with gold - try to take it
 ctx.bthread("Grab gold", "PlayerInCellWithGold", function (entity) {
