@@ -11,7 +11,7 @@ ctx.bthread("player - go to unvisited cell with no known danger", "Cell.NearWith
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " no known danger nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 60)
+        sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 60)
     }
 })
 
@@ -20,7 +20,7 @@ ctx.bthread("player - go to unvisited cell without danger", "Cell.NearUnvisitedN
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " clean nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 70)
+        sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 70)
     }
 })
 
@@ -29,6 +29,6 @@ ctx.bthread("player - return to visited cell", "Cell.NearVisited_NoGold", functi
     while(true) {
         let plan = planToNear(cell)
         // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: Event("Plan", {plan: plan}), waitFor: bp.all}, 50)
+        sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 50)
     }
 })

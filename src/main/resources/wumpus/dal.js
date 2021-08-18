@@ -15,26 +15,30 @@
 // add prio to gold
 
 
-
-
 // return all cell entities that are near 'cell'
-function getNearCells(cell) {
+function getNearCellsEntities(cell) {
+    return getNearCells(cell, getCellFromCtx)
+}
+
+function getNearCells(cell, func) {
     let result = []
     if (cell.row > 1)
-        result.push(getCellFromCtx(cell.row - 1, cell.col))
+        result.push(func(cell.row - 1, cell.col))
     if (cell.row < ROWS)
-        result.push(getCellFromCtx(cell.row + 1, cell.col))
+        result.push(func(cell.row + 1, cell.col))
     if (cell.col > 1)
-        result.push(getCellFromCtx(cell.row, cell.col - 1))
+        result.push(func(cell.row, cell.col - 1))
     if (cell.col < COLS)
-        result.push(getCellFromCtx(cell.row, cell.col + 1))
+        result.push(func(cell.row, cell.col + 1))
     return result
 }
+
 
 // return cell entity at row,col
 function getCellFromCtx(row, col) {
     return ctx.getEntityById("cell:" + row + "," + col)
 }
+
 
 ///////////////////////////////////////////////////////////////////
 
@@ -157,7 +161,7 @@ function updateCellStatus(action) {
     }
 
     // update things that are in near cells
-    let nearCells = getNearCells(cell)
+    let nearCells = getNearCellsEntities(cell)
     for (let i = 0; i < nearCells.length; i++) {
         let nearCell = nearCells[i]
         if (nearCell.hasPit) {
@@ -303,6 +307,16 @@ ctx.registerQuery("Cell.NearUnvisitedNoDanger_NoGold", function (entity) {
 ctx.registerQuery("Cell.NearVisited_NoGold", function (entity) {
     return entity.type.equals("cell") && entity.Pit == "visited" && entity.Wumpus == "visited" &&
         cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
+})
+
+///
+
+// return all cells that are near the player, and are (possibly...) dangerous - before player has taken gold
+//TODO replace 'possible' with certainty!
+ctx.registerQuery("Cell.Near_Possible_Danger_NoGold", function (entity) {
+    return entity.type.equals("cell") &&
+        (entity.Pit == "possible" || entity.Wumpus == "possible") &&
+        cellNearPlayer(entity)
 })
 
 
