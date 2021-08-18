@@ -147,7 +147,7 @@ function gameOver(reason) {
 function updateCellStatus(action) {
     let player = ctx.getEntityById("player")
     let cell = getCellFromCtx(player.row, player.col)
-    // bp.ASSERT(cell.hasPlayer, "ERROR: updateCellStatus: cell.hasPlayer is false!")   //TODO return
+    bp.ASSERT(cell.hasPlayer, "ERROR: updateCellStatus: cell.hasPlayer is false!")   //TODO return
 
     // update things that are in this cell
     if (cell.hasPit) {
