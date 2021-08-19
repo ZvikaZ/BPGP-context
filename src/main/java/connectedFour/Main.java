@@ -30,7 +30,7 @@ public class Main {
 
 
     public static void main(final String[] args) throws URISyntaxException {
-        BProgram bprog = new ContextBProgram("wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+        BProgram bprog = new ContextBProgram("wumpus/board1.js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
