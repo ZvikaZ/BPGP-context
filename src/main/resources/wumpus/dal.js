@@ -319,6 +319,15 @@ ctx.registerQuery("Cell.Near_Possible_Danger_NoGold", function (entity) {
         cellNearPlayer(entity)
 })
 
+ctx.registerQuery("PlayerOnEdge", function (entity) {
+    return entity.id.equals("player") &&
+        ((entity.row == 1 && entity.facing == 180 )||
+            (entity.row == ROWS && entity.facing == 0) ||
+            (entity.col == 1 && entity.facing == 270) ||
+            (entity.col == COLS && entity.facing == 90))
+})
+
+
 
 ////////////////////////////////////
 

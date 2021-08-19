@@ -203,17 +203,30 @@ bthread("boardPrinter", function() {
 
 // moved 3 main strategies to evolved.js
 
-// random walker, with low prio - to do something when strategies don't care
-bthread("player - random walker", function () {
+// forward walker, with low prio - to do something when strategies don't care
+bthread("player - forward walker", function () {
     while(true) {
-        // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: [
-            Event("Play", {id: 'turn-right'}),
-            Event("Play", {id: 'turn-left'}),
-            Event("Play", {id: 'forward'})
-        ], waitFor: AnyPlay}, 10)
+        sync({request: Event("Play", {id: 'forward'}), waitFor: AnyPlay}, 10)
     }
 })
+
+ctx.bthread("Avoid stepping out of borders", "PlayerOnEdge", function (entity) {
+    while(true) {
+        sync({
+            block: Event("Play", {id: 'forward'}),
+            waitFor: ContextChanged
+        })
+    }
+})
+
+// turn-right walker, with even lower prio - to do something when strategies don't care, and we can't advance forward
+bthread("player - random walker", function () {
+    while(true) {
+        sync({request: Event("Play", {id: 'turn-right'}), waitFor: AnyPlay}, 9)
+    }
+})
+
+
 
 //TODO: not 'possible' but certain!
 ctx.bthread("Avoid (possible) danger", "Cell.Near_Possible_Danger_NoGold", function (entity) {
