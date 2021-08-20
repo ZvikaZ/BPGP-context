@@ -29,8 +29,8 @@ public class Main {
     static long seed = System.currentTimeMillis();
 
 
-    public static void main(final String[] args) throws URISyntaxException {
-        BProgram bprog = new ContextBProgram("wumpus/board1.js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+    public static void singleRun(int boardNum) {
+        BProgram bprog = new ContextBProgram("wumpus/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
@@ -40,6 +40,16 @@ public class Main {
         bprog.setEventSelectionStrategy(prio);
 //      bprog.setWaitForExternalEvents(true);
         rnr.run();
+    }
+
+    public static void main(final String[] args) {
+        for (int i = 1; i <= 10; i++) {
+            System.out.println("****************************************************");
+            System.out.println("****************************************************");
+            System.out.println("****************************************************");
+            System.out.println("** BOARD " + i);
+            singleRun(i);
+        }
     }
 
 }
