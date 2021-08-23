@@ -43,7 +43,8 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        for (int i = 1; i <= 10; i++) {
+        for (int i = 1; i <= 6; i++) {
+//        for (int i = 1; i <= 10; i++) {   //TODO fix 7-10
             System.out.println("****************************************************");
             System.out.println("****************************************************");
             System.out.println("****************************************************");
