@@ -30,7 +30,7 @@ public class Main {
 
 
     public static void singleRun(int boardNum) {
-        BProgram bprog = new ContextBProgram("wumpus/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+        BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
@@ -43,8 +43,7 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        for (int i = 1; i <= 6; i++) {
-//        for (int i = 1; i <= 10; i++) {   //TODO fix 7-10
+        for (int i = 1; i <= 5; i++) {
             System.out.println("****************************************************");
             System.out.println("****************************************************");
             System.out.println("****************************************************");
