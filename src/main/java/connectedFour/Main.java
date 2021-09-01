@@ -31,6 +31,7 @@ public class Main {
 
     public static void singleRun(int boardNum) {
         BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+//        BProgram bprog = new ContextBProgram("wumpus/6x6/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
