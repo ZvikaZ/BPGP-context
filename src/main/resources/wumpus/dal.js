@@ -79,7 +79,6 @@ function init(){
         wumpus: 'alive',
         player_has_gold: false,
         safe_new_cells: [],     // cells that we have safe route to, and haven't been visited yet
-        actions_history: []     //TODO remove
     })
 
     let plan = ctx.Entity("plan", "", {val: []})
@@ -350,9 +349,6 @@ function updateIndication(ind) {
 // update player's knowledge base due to being in his current location
 function updateKb(id) {
     let kb = ctx.getEntityById("kb")
-
-    // save the action - to be able to return back to start after taking gold - in same way, and for debugging
-    kb.actions_history.push(id)
 
     // mark the cell as 'visited', therefore it doesn't have "Pit" or "Wumpus"
     updateVisited("Pit")
