@@ -178,11 +178,11 @@ bthread("boardPrinter", function() {
         else if (facing == 270)
             board[x][y] = '<'
 
-        bp.log.info("--------------------")
+        bp.log.fine("--------------------")
         for (var i = ROWS - 1; i >= 0; i--) {
-            bp.log.info(board[i].join(''))
+            bp.log.fine(board[i].join(''))
         }
-        bp.log.info("--------------------")
+        bp.log.fine("--------------------")
         sync({waitFor: AnyPlay});
     }
 })
@@ -196,7 +196,7 @@ bthread("boardPrinter", function() {
 // random walker, with low prio - to do something when strategies don't care
 bthread("player - random walker", function () {
     while(true) {
-        // bp.log.info(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
+        // bp.log.fine(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
         sync({request: [
             Event("Play", {id: 'turn-right'}),
             Event("Play", {id: 'turn-left'}),
@@ -213,12 +213,12 @@ ctx.bthread("Avoid (possible) danger", "Cell.NearPossibleDanger_NoGold_SafeCellE
             throw new Error("Avoid (possible) danger BT: player is not near " + entity.row + "," + entity.col + "! he is at: " + player.row + "," + player.col)
         let delta = direction(player, entity) - player.facing
         if (delta == 0) {
-            // bp.log.info("BLOCKING forward to cell " + entity.row + "," + entity.col)
+            // bp.log.fine("BLOCKING forward to cell " + entity.row + "," + entity.col)
             sync({
                 block: Event("Play", {id: 'forward'}),
                 waitFor: ContextChanged
             })
-            // bp.log.info("Stopped blocking forward to cell " + entity.row + "," + entity.col)
+            // bp.log.fine("Stopped blocking forward to cell " + entity.row + "," + entity.col)
         }
         else
             sync({waitFor: AnyPlay})
@@ -226,9 +226,11 @@ ctx.bthread("Avoid (possible) danger", "Cell.NearPossibleDanger_NoGold_SafeCellE
 })
 
 bthread("stop wandering around",  function () {
-    let max_actions = (ROWS * COLS) * ROWS * 3  // estimation
-    for (let i = 1; i <= max_actions; i++)
-        sync({waitFor: AnyPlay})
+    let max_actions = (ROWS * COLS)  * 3  // estimation
+    for (let i = 1; i <= max_actions; i++) {
+        sync({waitFor: Event("Play", {id: 'forward'})})
+        // bp.log.info("event " + i + " out of " + max_actions)
+    }
     sync({request: Event("Wandering")}, 200)
 })
 
@@ -255,7 +257,7 @@ ctx.bthread("Escape from cave with gold", "PlayerHasGold", function (kb) {
 bthread("debug climb", function () {
     sync({waitFor: Event("Play", {id: 'climb'})})
     let player = ctx.getEntityById("player")
-    bp.log.info(player)
+    bp.log.fine(player)
     if (player.row != 1 || player.col != 1)
         throw new Error("Wrong climbing")
 })
@@ -269,15 +271,15 @@ bthread("debug climb", function () {
 // a utility BT - not candidate for evolution - receives a plan ( = list of action strings), and just executes it, step by step
 ctx.bthread("Execute plan", "Active plan", function (entity) {
     let plan = entity.val
-    bp.log.info("execute plan, got: " + plan)
+    bp.log.fine("execute plan, got: " + plan)
     for (var i = 0; i < plan.length; i++) {
         let e = sync({request: Event("Play", {id: plan[i]}), block: AnyPlan}, 140) //Z returned prio
-        bp.log.info("Executed " + plan[i] + ", step #" + i + " of plan: " + plan)
+        bp.log.fine("Executed " + plan[i] + ", step #" + i + " of plan: " + plan)
         if (e.data.id != plan[i])
             throw new Error("plan execution failure!")
     }
     sync({request: Event("Finished plan")}, 240)  // uncommented this
 
     let player = ctx.getEntityById("player")
-    bp.log.info("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
+    bp.log.fine("Finished executing plan: " + plan + ". Now player in: " + player.row + ":" + player.col)
 })
