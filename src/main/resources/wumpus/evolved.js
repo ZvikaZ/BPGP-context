@@ -32,3 +32,12 @@
 //         sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 50)
 //     }
 // })
+
+ctx.bthread("player - go to safe, unvisited, cell", "Cell.UnVisitedSafeToVisit_NoGold_NoActivePlan", function (cell) {
+    while(true) {
+        let plan = createPlanTo(cell)
+        // bp.log.info("go to safe: " + cell.row + ":" + cell.col + ". plan: " + plan)
+        let e = sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 70)
+        // bp.log.info("go to safe: " + cell.row + ":" + cell.col + ". executed plan: " + plan)
+    }
+})

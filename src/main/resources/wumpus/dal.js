@@ -341,6 +341,13 @@ ctx.registerQuery("Cell.NearVisited_NoGold", function (entity) {
         cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold
 })
 
+ctx.registerQuery("Cell.UnVisitedSafeToVisit_NoGold_NoActivePlan", function (entity) {
+    return entity.type.equals("cell") && ctx.getEntityById("kb").safe_unvisited_cells.contains(getCellCords(entity))
+        cellNearPlayer(entity) && !ctx.getEntityById("kb").player_has_gold &&
+        !ctx.getEntityById("plan").val.length > 0
+})
+
+
 ///
 
 // return all cells that are near the player, and are (possibly...) dangerous - before player has taken gold,
