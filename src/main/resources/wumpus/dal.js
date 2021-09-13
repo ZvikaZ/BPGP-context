@@ -174,6 +174,9 @@ function gameOver(reason) {
 
 // update cell with required changes after player's action (or at game's start)
 function updateCellStatus(action) {
+    if (action.id && (action.id.equals("turn-right") || action.id.equals("turn-left")))
+        return
+
     let player = ctx.getEntityById("player")
     let cell = getCellEntity(player.row, player.col)
     bp.ASSERT(cell.hasPlayer, "ERROR: updateCellStatus: cell.hasPlayer is false!")   //TODO return
