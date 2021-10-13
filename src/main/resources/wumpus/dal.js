@@ -184,7 +184,8 @@ function updateCellStatus(action) {
     // update things that are in this cell
     if (cell.hasPit) {
         updateScore(-1000);
-        gameOver("fell in pit")
+        bp.log.info(cell)
+        gameOver("fell in pit " + getCellCords(cell))
     }
 
     if (cell.hasWumpus) {
@@ -393,7 +394,7 @@ function updateNoIndications(kb) {
     let player = ctx.getEntityById("player")
     let cell = getCellEntity(player.row, player.col)
     if (!cell.ObservedBreeze) {
-        // bp.log.fine("No Breeze indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
+        bp.log.fine("No Breeze indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
         // bp.log.fine(cell)
         cleanDanger("Pit", player.row + 1, player.col)
         cleanDanger("Pit", player.row - 1, player.col)
@@ -401,7 +402,7 @@ function updateNoIndications(kb) {
         cleanDanger("Pit", player.row, player.col - 1)
     }
     if (!cell.ObservedStench) {
-        // bp.log.fine("No Stench indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
+        bp.log.fine("No Stench indication in cell " + player.row + "," + player.col + ", cleaning its neighbors")
         // bp.log.fine(cell)
         cleanDanger("Wumpus", player.row + 1, player.col)
         cleanDanger("Wumpus", player.row - 1, player.col)
@@ -476,6 +477,15 @@ function cleanDanger(danger, row, col) {
     if (row >= 1 && row <= ROWS && col >= 1 && col <= COLS) {
         let cell = getCellEntity(row, col)
         if (cell[danger] == "unknown" || cell[danger] == "possible") {
+            bp.log.fine("Cleaning: " + getCellCords(cell) + " - " + cell[danger] + " from " + danger)
+            if (cell.hasPit && danger == "Pit") {
+                bp.log.info("!!!!!!!!!!!!!!!!!!!!!")
+                bp.log.info(cell)
+                let player = ctx.getEntityById("player")
+                let playerCell = getCellEntity(player.row, player.col)
+                bp.log.info(player)
+                bp.log.info(playerCell)
+            }
             cell[danger] = "clean"
         } else if (cell[danger] == "visited" || cell[danger] == "clean") {
             // pass

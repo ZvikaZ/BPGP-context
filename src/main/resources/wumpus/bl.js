@@ -197,11 +197,15 @@ bthread("boardPrinter", function() {
 bthread("player - random walker", function () {
     while(true) {
         // bp.log.fine(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: [
+        let e = sync({request: [
             Event("Play", {id: 'turn-right'}),
             Event("Play", {id: 'turn-left'}),
             Event("Play", {id: 'forward'})
         ], waitFor: AnyPlay}, 10)
+        if (ctx.getEntityById("plan").val.length == 0 && e.data.id != 'grab') {
+            let player = ctx.getEntityById("player")
+            bp.log.info("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
+        }
     }
 })
 
