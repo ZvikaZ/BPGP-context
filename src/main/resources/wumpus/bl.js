@@ -154,7 +154,7 @@ ctx.bthread("Game over", "Game over", function (entity) {
 ///////////            printing              //////////////
 ///////////////////////////////////////////////////////////
 
-bthread("boardPrinter", function() {
+/*bthread("boardPrinter", function() {
     let board = []
     for (var i = 0; i < ROWS; i++) {
         let row = []
@@ -185,7 +185,7 @@ bthread("boardPrinter", function() {
         bp.log.fine("--------------------")
         sync({waitFor: AnyPlay});
     }
-})
+})*/
 
 ///////////////////////////////////////////////////////////
 ///////////            strategies            //////////////
