@@ -244,6 +244,8 @@ ctx.bthread("Grab gold", "PlayerInCellWithGold", function (entity) {
     // the loop is required, because maybe the some other action was selected, and the gold wasn't grabbed
     while (true) {
         //TODO remove prio
+        sync({request: Event("Finished plan")}, 240)
+        //TODO remove prio
         sync({request: grab}, 110)  //Z removing 'block: grab' fixed the infinite loop ; also added back prio
     }
 })
