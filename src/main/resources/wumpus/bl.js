@@ -204,7 +204,7 @@ bthread("player - random walker", function () {
         ], waitFor: AnyPlay}, 10)
         if (ctx.getEntityById("plan").val.length == 0 && e.data.id != 'grab') {
             let player = ctx.getEntityById("player")
-            bp.log.info("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
+            bp.log.fine("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
         }
     }
 })
