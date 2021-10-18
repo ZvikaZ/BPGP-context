@@ -154,38 +154,38 @@ ctx.bthread("Game over", "Game over", function (entity) {
 ///////////            printing              //////////////
 ///////////////////////////////////////////////////////////
 
-bthread("boardPrinter", function() {
-    let board = []
-    for (var i = 0; i < ROWS; i++) {
-        let row = []
-        for (var j = 0; j < COLS; j++) {
-            row.push('_')
-        }
-        board.push(row)
-    }
-
-    while (true) {
-        let player = ctx.getEntityById("player")
-        let x = player.row - 1
-        let y = player.col - 1
-        let facing = player.facing
-        if (facing == 0)
-            board[x][y] = '^'
-        else if (facing == 90)
-            board[x][y] = '>'
-        else if (facing == 180)
-            board[x][y] = 'V'
-        else if (facing == 270)
-            board[x][y] = '<'
-
-        bp.log.fine("--------------------")
-        for (var i = ROWS - 1; i >= 0; i--) {
-            bp.log.fine(board[i].join(''))
-        }
-        bp.log.fine("--------------------")
-        sync({waitFor: AnyPlay});
-    }
-})
+// bthread("boardPrinter", function() {
+//     let board = []
+//     for (var i = 0; i < ROWS; i++) {
+//         let row = []
+//         for (var j = 0; j < COLS; j++) {
+//             row.push('_')
+//         }
+//         board.push(row)
+//     }
+//
+//     while (true) {
+//         let player = ctx.getEntityById("player")
+//         let x = player.row - 1
+//         let y = player.col - 1
+//         let facing = player.facing
+//         if (facing == 0)
+//             board[x][y] = '^'
+//         else if (facing == 90)
+//             board[x][y] = '>'
+//         else if (facing == 180)
+//             board[x][y] = 'V'
+//         else if (facing == 270)
+//             board[x][y] = '<'
+//
+//         bp.log.fine("--------------------")
+//         for (var i = ROWS - 1; i >= 0; i--) {
+//             bp.log.fine(board[i].join(''))
+//         }
+//         bp.log.fine("--------------------")
+//         sync({waitFor: AnyPlay});
+//     }
+// })
 
 ///////////////////////////////////////////////////////////
 ///////////            strategies            //////////////
@@ -197,11 +197,15 @@ bthread("boardPrinter", function() {
 bthread("player - random walker", function () {
     while(true) {
         // bp.log.fine(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        sync({request: [
+        let e = sync({request: [
             Event("Play", {id: 'turn-right'}),
             Event("Play", {id: 'turn-left'}),
             Event("Play", {id: 'forward'})
         ], waitFor: AnyPlay}, 10)
+        if (ctx.getEntityById("plan").val.length == 0 && e.data.id != 'grab') {
+            let player = ctx.getEntityById("player")
+            bp.log.info("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
+        }
     }
 })
 

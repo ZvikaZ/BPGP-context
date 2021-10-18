@@ -24,14 +24,15 @@ public class Main {
      * Level.CtxChanged: print only CTX.Changed events (i.e., filter the transaction lock/release events)
      */
 //    private static final Level logLevel = Level.CtxChanged;
-    private static final Level logLevel = Level.ALL;
+//    private static final Level logLevel = Level.ALL;
+    private static final Level logLevel = Level.NONE;
 
     static long seed = System.currentTimeMillis();
 
 
     public static void singleRun(int boardNum) {
         BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
-//        BProgram bprog = new ContextBProgram("wumpus/6x6/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+//        BProgram bprog = new ContextBProgram("wumpus/20x20/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
 
@@ -44,6 +45,12 @@ public class Main {
     }
 
     public static void main(final String[] args) {
+        // with old manual strategies:
+        // 1: climbed, score: 796
+        // 2: climbed, score: 576
+        // 3: climbed, score: 960
+        // 4: wandering, score: -1442   [should be solved by braveness!]
+        // 5: wandering, score: -1442   [should be solved by braveness!]
         for (int i = 1; i <= 5; i++) {
             System.out.println("****************************************************");
             System.out.println("****************************************************");
