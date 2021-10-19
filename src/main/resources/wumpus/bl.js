@@ -204,7 +204,7 @@ bthread("player - random walker", function () {
         ], waitFor: AnyPlay}, 10)
         if (ctx.getEntityById("plan").val.length == 0 && e.data.id != 'grab') {
             let player = ctx.getEntityById("player")
-            bp.log.info("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
+            bp.log.fine("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
         }
     }
 })
@@ -235,6 +235,10 @@ bthread("stop wandering around",  function () {
         sync({waitFor: Event("Play", {id: 'forward'})})
         // bp.log.info("event " + i + " out of " + max_actions)
     }
+    //TODO: remove
+    bp.log.warn("Wandering - ending")
+    sync({block: bp.all})
+
     sync({request: Event("Wandering")}, 200)
 })
 
