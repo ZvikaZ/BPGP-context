@@ -236,6 +236,10 @@ bthread("stop wandering around",  function () {
         sync({waitFor: Event("Play", {id: 'forward'})})
         // bp.log.info("event " + i + " out of " + max_actions)
     }
+    //TODO: remove
+    bp.log.warn("Wandering - ending")
+    sync({block: bp.all})
+
     sync({request: Event("Wandering")}, 200)
 })
 
