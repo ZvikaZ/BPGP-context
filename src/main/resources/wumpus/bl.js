@@ -143,8 +143,16 @@ bthread("start", function() {
 })
 
 ctx.bthread("Game over", "Game over", function (entity) {
-    bp.log.info("Game over: " + entity.reason + ", score: " + entity.score)
-    let ev = Event("Game over", {score: entity.score})
+    let numOfVisitedCells = 0
+    for (let i = 1; i <= ROWS; i++)
+        for (let j = 1; j <= COLS; j++) {
+            let cell = getCellEntity(i, j)
+            if (cell.Pit == "visited")
+                numOfVisitedCells++
+        }
+
+    bp.log.info("Game over: " + entity.reason + ", score: " + entity.score + ", visited cells: " + numOfVisitedCells)
+    let ev = Event("Game over", {score: entity.score, numOfVisitedCells: numOfVisitedCells})
     sync({request: ev, block: ev.negate()})
     sync({block: bp.all})
 })
