@@ -62,8 +62,8 @@ function createPlanTo(dest) {
     // this function uses a lot of -1 because generally we start row (and col) from 1, while here the
     // array index starts from 0
 
-    if (!isCellSafe(dest))
-        return []
+    // if (!isCellSafe(dest))
+    //     return []
 
     let cells = []
     for (let i = 1; i <= ROWS; i++) {
@@ -193,19 +193,24 @@ ctx.bthread("Game over", "Game over", function (entity) {
 
 // moved 3 main strategies to evolved.js
 
-// random walker, with low prio - to do something when strategies don't care
-bthread("player - random walker", function () {
+// // random walker, with low prio - to do something when strategies don't care
+// bthread("player - random walker", function () {
+//     while(true) {
+//         // bp.log.fine(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
+//         sync({request: [
+//                 Event("Play", {id: 'turn-right'}),
+//                 Event("Play", {id: 'turn-left'}),
+//                 Event("Play", {id: 'forward'})
+//             ], waitFor: AnyPlay}, 10)
+//     }
+// })
+
+// notify (and finish) when strategies don't care
+bthread("player - strategies don't care", function () {
     while(true) {
-        // bp.log.fine(player.row + ":" + player.col + "," + player.facing + " visited nearby: " + cell.row + ":" + cell.col + ". direction: " + direction(player, cell) + ". plan: " + plan)
-        let e = sync({request: [
-            Event("Play", {id: 'turn-right'}),
-            Event("Play", {id: 'turn-left'}),
-            Event("Play", {id: 'forward'})
-        ], waitFor: AnyPlay}, 10)
-        if (ctx.getEntityById("plan").val.length == 0 && e.data.id != 'grab') {
-            let player = ctx.getEntityById("player")
-            bp.log.fine("!!! RANDOM WALKER executed: " + e + ", now player at: " + getCellCords(player) + ", facing: " + player.facing)
-        }
+        // it has low priority, selected only if there isn't any strategy
+        // important to finish properly, and calculate fitness
+        sync({request: Event("StrategiesDontCare")}, 10)
     }
 })
 

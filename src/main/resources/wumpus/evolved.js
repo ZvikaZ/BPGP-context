@@ -33,11 +33,18 @@
 //     }
 // })
 
-ctx.bthread("player - go to safe, unvisited, cell", "Cell.UnVisitedSafeToVisit_NoGold_NoActivePlan", function (cell) {
+ctx.bthread("player - go to safe, unvisited, cell", "Cell.UnVisitedSafeToVisit", function (cell) {
     while(true) {
         let plan = createPlanTo(cell)
-        // bp.log.info("go to safe: " + cell.row + ":" + cell.col + ". plan: " + plan)
-        let e = sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 70)
+        let e = sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 80)
         // bp.log.info("go to safe: " + cell.row + ":" + cell.col + ". executed plan: " + plan)
+    }
+})
+
+ctx.bthread("player - go to possibly dangerous, unvisited, cell", "Cell.UnVisitedPossibleDangerRoute", function (cell) {
+    while(true) {
+        let plan = createPlanTo(cell)
+        let e = sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 70)
+        // bp.log.info("go to possible danger: " + cell.row + ":" + cell.col + ". executed plan: " + plan)
     }
 })
