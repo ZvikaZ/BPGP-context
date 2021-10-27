@@ -2,6 +2,7 @@ package connectedFour;
 
 import il.ac.bgu.cs.bp.bpjs.context.ContextBProgram;
 import il.ac.bgu.cs.bp.bpjs.execution.BProgramRunner;
+import il.ac.bgu.cs.bp.bpjs.execution.listeners.BProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.execution.listeners.BProgramRunnerListenerAdapter;
 import il.ac.bgu.cs.bp.bpjs.execution.listeners.PrintBProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.model.BEvent;
@@ -30,31 +31,30 @@ public class Main {
         BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
 //        BProgram bprog = new ContextBProgram("wumpus/20x20/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
-        rnr.addListener(new PrintBProgramRunnerListener());
-//        rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new BProgramRunnerListenerAdapter() {
-//            private int counter = 0;
-//            private long startTime;
-//            @Override
-//            public void eventSelected(BProgram bp, BEvent theEvent) {
-//                super.eventSelected(bp, theEvent);
+        rnr.addListener(new BProgramRunnerListenerAdapter() {
+            private int counter = 0;
+            private long startTime;
+            @Override
+            public void eventSelected(BProgram bp, BEvent theEvent) {
+                super.eventSelected(bp, theEvent);
 //                System.out.println(theEvent);
-//                counter++;
-//            }
-//
-//            @Override
-//            public void started(BProgram bp) {
-//                super.started(bp);
-//                startTime = System.currentTimeMillis();
-//            }
-//
-//            @Override
-//            public void ended(BProgram bp) {
-//                long delta = System.currentTimeMillis() - startTime;
-//                System.out.println("number of events: "+counter);
-//                System.out.println("seconds: "+ (delta / 1000));
-//                System.out.println("avg mili for event: " + (delta / counter));
-//            }
-//        }));
+                counter++;
+            }
+
+            @Override
+            public void started(BProgram bp) {
+                super.started(bp);
+                startTime = System.currentTimeMillis();
+            }
+
+            @Override
+            public void ended(BProgram bp) {
+                long delta = System.currentTimeMillis() - startTime;
+                System.out.println("number of events: "+counter);
+                System.out.println("seconds: "+ (delta / 1000));
+                System.out.println("avg mili for event: " + (delta / counter));
+            }
+        });
 
         System.out.println("Using seed: " + seed);
         var prio = new PrioritizedBSyncEventSelectionStrategy(seed);
