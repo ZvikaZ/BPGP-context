@@ -1,7 +1,6 @@
 package connectedFour;
 
 import il.ac.bgu.cs.bp.bpjs.context.ContextBProgram;
-import il.ac.bgu.cs.bp.bpjs.context.PrintCOBProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.execution.BProgramRunner;
 import il.ac.bgu.cs.bp.bpjs.execution.listeners.PrintBProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.model.BProgram;
@@ -9,7 +8,6 @@ import il.ac.bgu.cs.bp.bpjs.model.eventselection.PrioritizedBSyncEventSelectionS
 
 import java.net.URISyntaxException;
 
-import static il.ac.bgu.cs.bp.bpjs.context.PrintCOBProgramRunnerListener.Level;
 
 public class Main {
     /**
@@ -23,9 +21,6 @@ public class Main {
      * Level.NONE : print none
      * Level.CtxChanged: print only CTX.Changed events (i.e., filter the transaction lock/release events)
      */
-//    private static final Level logLevel = Level.CtxChanged;
-//    private static final Level logLevel = Level.ALL;
-    private static final Level logLevel = Level.NONE;
 
     static long seed = System.currentTimeMillis();
 
@@ -34,7 +29,7 @@ public class Main {
         BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
 //        BProgram bprog = new ContextBProgram("wumpus/20x20/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
-        rnr.addListener(new PrintCOBProgramRunnerListener(logLevel, new PrintBProgramRunnerListener()));
+        rnr.addListener(new PrintBProgramRunnerListener());
 
         System.out.println("Using seed: " + seed);
         var prio = new PrioritizedBSyncEventSelectionStrategy(seed);
