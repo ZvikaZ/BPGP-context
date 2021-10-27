@@ -152,7 +152,7 @@ ctx.bthread("Game over", "Game over", function (entity) {
         }
 
     bp.log.info("Game over: " + entity.reason + ", score: " + entity.score + ", visited cells: " + numOfVisitedCells)
-    let ev = Event("Game over", {score: entity.score, numOfVisitedCells: numOfVisitedCells})
+    let ev = Event("Game over", {score: entity.score, numOfVisitedCells: numOfVisitedCells, boardSize: ROWS * COLS})
     sync({request: ev, block: ev.negate()})
     sync({block: bp.all})
 })
