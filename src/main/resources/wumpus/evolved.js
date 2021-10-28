@@ -36,7 +36,7 @@
 ctx.bthread("player - go to safe, unvisited, cell", "Cell.UnVisitedSafeToVisit", function (cell) {
     while(true) {
         let plan = createPlanTo(cell)
-        let e = sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 80)
+        let e = sync({request: Event("Plan", {plan: plan}), waitFor: ContextChanged}, 80 - manhattanDistanceFromPlayer(cell))
         // bp.log.info("go to safe: " + cell.row + ":" + cell.col + ". executed plan: " + plan)
     }
 })
