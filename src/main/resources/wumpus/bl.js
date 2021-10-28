@@ -33,9 +33,10 @@ function planToNear(dest) {
 // return plan from src to dest, assuming near(src,dest) - regardless of player's current location
 function planFromAnyToNear(src, dest) {
     if (!near(src, dest)) {
-        bp.log.info(src)
-        bp.log.info(dest)
-        throw new Error("planToNear: src is not near " + dest.row + "," + dest.col + "! src is at: " + src.row + "," + src.col)
+        // bp.log.info(src)
+        // bp.log.info(dest)
+        // throw new Error("planToNear: src is not near " + dest.row + "," + dest.col + "! src is at: " + src.row + "," + src.col)
+        return {plan: []}
     }
 
     let dir = direction(src, dest)
