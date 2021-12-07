@@ -288,7 +288,9 @@ ctx.registerEffect("Play", function (action) {
 
 ctx.registerEffect("Plan", function (event) {
     let plan = ctx.getEntityById("plan")
-    if (plan.val.length == 0) {
+    // existing plan is empty (no active plan) ; new plan is valid
+    if (plan.val.length == 0 && event.plan.length > 0) {
+        // bp.log.info(event.plan.length)
         plan.val = event.plan.slice()   // '.slice()' makes a copy
         ctx.updateEntity(plan)
     }
@@ -436,7 +438,9 @@ function updateSafeNewCells(kb) {
             kb.safe_unvisited_cells.add(getCellCords(cell))
             // bp.log.info("Moving from potential to safe " + getCellCords(cell))
         }
-
+        if (cell.Pit == "visited" && cell.Wumpus == "visited") {
+            it.remove()
+        }
     }
     for (let it = kb.safe_unvisited_cells.iterator(); it.hasNext(); ) {
         let cell = getCellEntityFromCords(it.next())

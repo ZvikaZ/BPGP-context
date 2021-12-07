@@ -231,25 +231,25 @@ bthread("player - strategies don't care", function () {
     }
 })
 
-//TODO: not 'possible' but certain!
-ctx.bthread("Avoid (possible) danger", "Cell.NearPossibleDanger_NoGold_SafeCellExist", function (entity) {
-    while(true) {
-        let player = ctx.getEntityById("player")
-        if (!near(player, entity))
-            throw new Error("Avoid (possible) danger BT: player is not near " + entity.row + "," + entity.col + "! he is at: " + player.row + "," + player.col)
-        let delta = direction(player, entity) - player.facing
-        if (delta == 0) {
-            // bp.log.fine("BLOCKING forward to cell " + entity.row + "," + entity.col)
-            sync({
-                block: Event("Play", {id: 'forward'}),
-                waitFor: ContextChanged
-            })
-            // bp.log.fine("Stopped blocking forward to cell " + entity.row + "," + entity.col)
-        }
-        else
-            sync({waitFor: AnyPlay})
-    }
-})
+// //TODO: not 'possible' but certain!
+// ctx.bthread("Avoid (possible) danger", "Cell.NearPossibleDanger_NoGold_SafeCellExist", function (entity) {
+//     while(true) {
+//         let player = ctx.getEntityById("player")
+//         if (!near(player, entity))
+//             throw new Error("Avoid (possible) danger BT: player is not near " + entity.row + "," + entity.col + "! he is at: " + player.row + "," + player.col)
+//         let delta = direction(player, entity) - player.facing
+//         if (delta == 0) {
+//             // bp.log.fine("BLOCKING forward to cell " + entity.row + "," + entity.col)
+//             sync({
+//                 block: Event("Play", {id: 'forward'}),
+//                 waitFor: ContextChanged
+//             })
+//             // bp.log.fine("Stopped blocking forward to cell " + entity.row + "," + entity.col)
+//         }
+//         else
+//             sync({waitFor: AnyPlay})
+//     }
+// })
 
 bthread("stop wandering around",  function () {
     let max_actions = (ROWS * COLS)  * 3  // estimation
