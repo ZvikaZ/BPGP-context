@@ -149,6 +149,7 @@ bthread("boardPrinter", function() {
 //endregion
 
 
+/*
 // region strategies - four
 
 ctx.bthread("catch fourth", "Four.All", function (four) {
@@ -180,6 +181,7 @@ ctx.bthread("catch fourth", "Four.All", function (four) {
         }
     }
 })
+*/
 
 //endregion
 

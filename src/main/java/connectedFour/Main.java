@@ -6,8 +6,6 @@ import il.ac.bgu.cs.bp.bpjs.execution.listeners.PrintBProgramRunnerListener;
 import il.ac.bgu.cs.bp.bpjs.model.BProgram;
 import il.ac.bgu.cs.bp.bpjs.model.eventselection.PrioritizedBSyncEventSelectionStrategy;
 
-import java.net.URISyntaxException;
-
 
 public class Main {
     /**
@@ -25,9 +23,9 @@ public class Main {
     static long seed = System.currentTimeMillis();
 
 
-    public static void singleRun(int boardNum) {
-        BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
-//        BProgram bprog = new ContextBProgram("wumpus/20x20/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+    public static void singleRun() {
+//        BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
+        BProgram bprog = new ContextBProgram("connect_four/dal.js", "connect_four/bl.js"); //, "connect_four/evolved.js");  //TODO evolved?
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintBProgramRunnerListener());
 
@@ -40,18 +38,13 @@ public class Main {
     }
 
     public static void main(final String[] args) {
-        // with old manual strategies:
-        // 1: climbed, score: 796
-        // 2: climbed, score: 576
-        // 3: climbed, score: 960
-        // 4: wandering, score: -1442   [should be solved by braveness!]
-        // 5: wandering, score: -1442   [should be solved by braveness!]
-        for (int i = 1; i <= 5; i++) {
+//        for (int i = 1; i <= 100; i++) {      //TODO
+        for (int i = 1; i <= 4; i++) {
             System.out.println("****************************************************");
             System.out.println("****************************************************");
             System.out.println("****************************************************");
-            System.out.println("** BOARD " + i);
-            singleRun(i);
+            System.out.println("** RUN " + i);
+            singleRun();
         }
     }
 
