@@ -25,7 +25,7 @@ public class Main {
 
     public static void singleRun() {
 //        BProgram bprog = new ContextBProgram("wumpus/boards/board" + boardNum + ".js", "wumpus/dal.js", "wumpus/bl.js", "wumpus/evolved.js");
-        BProgram bprog = new ContextBProgram("connect_four/dal.js", "connect_four/bl.js"); //, "connect_four/evolved.js");  //TODO evolved?
+        BProgram bprog = new ContextBProgram("connect_four/dal.js", "connect_four/bl.js", "connect_four/evolved.js");
         final BProgramRunner rnr = new BProgramRunner(bprog);
         rnr.addListener(new PrintBProgramRunnerListener());
 

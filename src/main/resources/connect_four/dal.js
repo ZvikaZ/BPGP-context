@@ -100,11 +100,11 @@ let gameOngoing = ctx.Entity("game ongoing")
 //endregion
 
 //region Context population - strategies
-const fives = createLines(5, "five")
+// const fives = createLines(5, "five")
 
 
 // TODO is it possible to split to two?
-ctx.populateContext(cells.concat(columns).concat(fives).concat(fours).concat([numOfPlys, gameOngoing]))
+ctx.populateContext(cells.concat(columns).concat(fours).concat([numOfPlys, gameOngoing]))
 //endregion
 
 
@@ -131,6 +131,7 @@ ctx.registerQuery("Game over", function (entity) {
 
 //endregion
 
+/*
 //region Queries - strategies
 ctx.registerQuery("Five.NotBad", function (entity) {
     return entity.type.equals("five") && !entity.status.equals("BAD")
@@ -140,6 +141,7 @@ ctx.registerQuery("Five.Ready", function (entity) {
     return entity.type.equals("five") && entity.status.equals("READY")
 })
 //endregion
+ */
 
 //region Effects - basic game
 ctx.registerEffect("Coin", function (data) {
@@ -162,8 +164,6 @@ ctx.registerEffect("Coin", function (data) {
         // maybe we have a race condition with a win, thus, only it's only a 'potential' draw
         sync({request: Event("Potential draw")})
     }
-
-// let fiveRight = ctx.getEntityById("")    //TODO del?
 })
 
 function gameOver(type, data) {
@@ -180,6 +180,7 @@ ctx.registerEffect("Draw", function (data) {
 })
 //endregion
 
+/*
 //region Effects - strategies
 ctx.registerEffect("Five is ready", function (data) {
     const five = ctx.getEntityById(data)
@@ -205,5 +206,6 @@ ctx.registerEffect("Remove cell from five", function (data) {
     ctx.updateEntity(five)
 })
 
-
 //endregion
+
+ */
